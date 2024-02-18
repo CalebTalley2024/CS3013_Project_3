@@ -1,0 +1,92 @@
+diff -ur dosbox-src-untouched/include/mem.h dosbox-src/include/mem.h
+--- dosbox-src-untouched/include/mem.h	2024-02-08 21:16:22.695337780 -0500
++++ dosbox-src/include/mem.h	2024-02-08 22:17:57.858775414 -0500
+@@ -57,6 +57,7 @@
+ 	Working on big or little endian machines 
+ */
+ 
++#if !defined(WPI_OS_PROJECT_3)
+ static INLINE Bit8u host_readb(HostPt off) {
+ 	return off[0];
+ }
+@@ -64,9 +65,51 @@
+ static INLINE void host_writeb(HostPt off,Bit8u val) {
+ 	off[0]=val;
+ }
++#endif
++
++#if defined(WPI_OS_PROJECT_3)
++#include "../../mm_api.h"
++int MM_LoadByte(int pid, uint32_t address, uint8_t *value);
++int MM_StoreByte(int pid, uint32_t address, uint8_t value);
++
++static INLINE Bit8u host_readb(HostPt off) {
++	uintptr_t addr = (uintptr_t)(off - MemBase);
++	if (addr < MM_PROCESS_VIRTUAL_MEMORY_SIZE_BYTES) {
++		Bit8u ret;
++		CHECK(MM_LoadByte(0, addr, &ret) == 0);
++	}
++	return off[0];
++}
++
++static INLINE void host_writeb(HostPt off,Bit8u val) {
++	uintptr_t addr = (uintptr_t)(off - MemBase);
++	if (addr < MM_PROCESS_VIRTUAL_MEMORY_SIZE_BYTES)
++		CHECK(MM_StoreByte(0, addr, val) == 0);
++	off[0]=val;
++}
++static INLINE Bit16u host_readw(HostPt off) {
++	return (host_readb(off + 0) << 0) |
++		(host_readb(off + 1) << 8);
++}
++static INLINE Bit32u host_readd(HostPt off) {
++	return (host_readb(off + 0) << 0) |
++		(host_readb(off + 1) << 8) |
++		(host_readb(off + 2) << 16) |
++		(host_readb(off + 3) << 24);
++}
++static INLINE void host_writew(HostPt off,Bit16u val) {
++	host_writeb(off + 0, val >> 0);
++	host_writeb(off + 1, val >> 8);
++}
++static INLINE void host_writed(HostPt off,Bit32u val) {
++	host_writeb(off + 0, val >> 0);
++	host_writeb(off + 1, val >> 8);
++	host_writeb(off + 2, val >> 16);
++	host_writeb(off + 3, val >> 24);
++}
+ 
+ // use __builtin_bswap* for gcc >= 4.3
+-#if defined(WORDS_BIGENDIAN) && defined(__GNUC__) && \
++#elif defined(WORDS_BIGENDIAN) && defined(__GNUC__) && \
+ 	(__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3))
+ 
+ static INLINE Bit16u host_readw(HostPt off) {
+diff -ur dosbox-src-untouched/src/hardware/Makefile.am dosbox-src/src/hardware/Makefile.am
+--- dosbox-src-untouched/src/hardware/Makefile.am	2024-02-08 21:16:22.167348734 -0500
++++ dosbox-src/src/hardware/Makefile.am	2024-02-08 21:42:29.909660196 -0500
+@@ -10,6 +10,6 @@
+                         memory.cpp mixer.cpp pcspeaker.cpp pci_bus.cpp pic.cpp sblaster.cpp tandy_sound.cpp timer.cpp \
+ 			vga.cpp vga_attr.cpp vga_crtc.cpp vga_dac.cpp vga_draw.cpp vga_gfx.cpp vga_other.cpp \
+ 			vga_memory.cpp vga_misc.cpp vga_seq.cpp vga_xga.cpp vga_s3.cpp vga_tseng.cpp vga_paradise.cpp \
+-			cmos.cpp disney.cpp gus.cpp mpu401.cpp ipx.cpp ipxserver.cpp dbopl.cpp
++			cmos.cpp disney.cpp gus.cpp mpu401.cpp ipx.cpp ipxserver.cpp dbopl.cpp ../../../mm_api.c
+ 
+ 
+diff -ur dosbox-src-untouched/src/hardware/memory.cpp dosbox-src/src/hardware/memory.cpp
+--- dosbox-src-untouched/src/hardware/memory.cpp	2024-02-08 21:16:22.099350144 -0500
++++ dosbox-src/src/hardware/memory.cpp	2024-02-08 22:07:56.933068591 -0500
+@@ -592,8 +592,13 @@
+ 		WriteHandler.Install(0x92,write_p92,IO_MB);
+ 		ReadHandler.Install(0x92,read_p92,IO_MB);
+ 		MEM_A20_Enable(false);
++		MM_AutoMap();
++		MM_SwapOn();
+ 	}
+ 	~MEMORY(){
++		struct MM_Stats stats;
++		MM_GetStats(0, &stats);
++		LOG_MSG("CS3013 Assignment Pages Allocated %u Page Faults %u", stats.pages_allocated, stats.page_faults);
+ 		delete [] MemBase;
+ 		delete [] memory.phandlers;
+ 		delete [] memory.mhandles;
