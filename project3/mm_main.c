@@ -25,8 +25,7 @@ int main(int argc, char **argv)
 	}
 
 	while (1) {
-		// ssize_t nread;
-		size_t nread;
+		ssize_t nread;
 		char linebuf[128];
 		char *line = linebuf;
 		size_t linesz = sizeof(linebuf) - 1;
