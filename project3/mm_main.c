@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 			if (pid < 0 || pid >= MM_MAX_PROCESSES) {
 				printf("Invalid pid %d\n", pid);
 			} else if (strcmp(op, "map") == 0) {
-				struct MM_MapResult mr = MM_Map(pid, address, !!value);
+				struct MM_MapResult mr = MM_Map(pid, address, !!value); 
 				if (mr.error) {
 					printf("Map failed\n");
 				} else if (mr.new_mapping) {
@@ -126,4 +126,6 @@ int main(int argc, char **argv)
 
 	return 0;
 }
+
+
 
