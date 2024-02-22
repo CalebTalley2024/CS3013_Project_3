@@ -18,6 +18,7 @@ int main(int argc, char **argv)
 	printf("MM_MAX_SWAP_SIZE_BYTES %d\n", MM_MAX_SWAP_SIZE_BYTES);
 	printf("\n");
 
+
 	FILE *input = NULL;
 	if (argc == 2) {
 		CHECK((input = fopen(argv[1], "r")) != NULL);

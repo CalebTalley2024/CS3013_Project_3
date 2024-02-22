@@ -127,6 +127,18 @@ int MM_StoreByte(int pid, uint32_t address, uint8_t value);
 // of page faults that are occurring.
 int MM_GetStats(int pid, struct MM_Stats *stats);
 
+int create_page_table_ptr(int pid);
+
+
+// struct Page_Table_Entry {
+//     // pte_page_t page; // What goes here??
+//     pte_page_t physical_frame_number : 20; 
+//     pte_page_t valid: 1;
+//     pte_page_t swapped: 1;
+//     pte_page_t writable;
+
+// };
+
 #ifdef __cplusplus
 }
 #endif

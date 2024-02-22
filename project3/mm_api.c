@@ -15,23 +15,13 @@
 // first 4 page frames are reserved for process page tables
 uint8_t phys_mem[MM_PHYSICAL_MEMORY_SIZE_BYTES];
 
-// Section 2: File for swap, if backed by disk.
-FILE *swap_disk_file;
-
 // A single page table entry.
-
-
- struct Page_Table {
-    struct Page_Table_Entry *ptes[MM_NUM_PTES];
-}; 
-
-// A single page table entry.
+// pte_page_t page; // What goes here??
  struct Page_Table_Entry {
-    // pte_page_t page; // What goes here??
     pte_page_t physical_frame_number : 20; 
     pte_page_t valid: 1;
     pte_page_t swapped: 1;
-    pte_page_t writable;
+    pte_page_t writable: 1;
 
 };
 
@@ -45,45 +35,13 @@ FILE *swap_disk_file;
 
 
 // create 4 page table pointers
-struct Page_Table *page_tables[MM_MAX_PROCESSES];
-
-
-
-
-int init_mm (){
-    // create table
-    
-    // init pointers for Page Tables
-    for(int i = 0; i < MM_MAX_PROCESSES; i++){
-
-        // get 1 page table
-        struct Page_Table *page_table = page_tables[i];
-
-        // make sure pointers are going to seperate locations in memory, separated by the size of each page table (num ptes * size_of_pte)    
-        //int page_table_size = MM_PTE_SIZE_BYTES * MM_NUM_PTES;
-
-        // page_table -> physical memory location
-        //page_table = (void*)phys_mem + i * page_table_size;
-    }
-
-    *page_tables = (void*)phys_mem;
-
-    // init used_pages
-    for (int i = 0; i<MM_PHYSICAL_PAGES; i++){
-        used_pages[i] = 0;
-    }
-
-    return 0;
-}
-
+// struct Page_Table *page_tables[MM_MAX_PROCESSES];
 
 
 // init page table pointers
-init_mm();
 
 //////////////////////// By Google Instructor
 
-// struct page_table_entry *start_of_page_table = &phys_mem[page_table_location_register[pid]];
 // struct page_table_entry *pte = &start_of_page_table[virtual_frame_number];
 
 // struct page_table_entry* page_table_start = &phys_mem[pid * MM_PAGE_TABLE_SIZE_BYTES];
@@ -91,24 +49,57 @@ init_mm();
 
 /////////////////////////
 
+// page table location reister: holds location of the start of each processes'page table
+uint8_t *page_table_loc_register[MM_MAX_PROCESSES];
+
+int create_page_table_ptr(int pid){
+    // make register for pid point to base + offset
+    // base = location of the first page in phy_mem
+    // offset  = size of a page * pid               (location where the page table should be)
+    // We are assuming that each Page table is the same size, that way we can use pid to move the pointer by an offset each time
+    int offset = MM_PAGE_TABLE_SIZE_BYTES* pid;
+    // printf("\nhello");
+    page_table_loc_register[pid] =  (uint8_t*)(&phys_mem + offset);
+    /*
+
+    (uint8_t*): cast address from sum
+    
+    (&phys_mem + offset): sum for differnt memory address
+    
+    */
+
+    return 0;
+}
 
 
 
 
-uint8_t used_pages[MM_PHYSICAL_PAGES];
+
+uint8_t used_pages[MM_PHYSICAL_PAGES];  // default value is 0
+
 
 // Per process stats.
 struct MM_Stats process_stats[MM_MAX_PROCESSES];
 
 
+
+
+// init_used_pages();
+// init_used_pages (used_pages);
 //We are here, we are here, we are here!
 
 
 // #TODO use pid when getting page table
 struct MM_MapResult MM_Map(int pid, uint32_t address, int writable) {  
 
-    // pid  -->  page table
-    struct Page_Table * page_table = page_tables[pid];
+    // make page table pointer for this pid
+    create_page_table_ptr(pid);
+
+
+    // make pointer for the start of page table ( also can be considered the first PTE for the talbe)
+
+    struct Page_Table_Entry *page_table = (struct Page_Table_Entry*)&phys_mem[*page_table_loc_register[pid]];  // pointing to uint8_t (the one that starts the array)
+
     
     //start here
     struct MM_MapResult ret = {0};
@@ -123,12 +114,9 @@ struct MM_MapResult MM_Map(int pid, uint32_t address, int writable) {
     printf("Virtual frame number = %x\n", virtual_frame_number);
     printf("Offset = %x\n", offset);
 
-    struct page_table_entry *pte = &page_table[virtual_frame_number];
+    struct Page_Table_Entry *pte = &page_table[virtual_frame_number];
 
     //when should we make the page table? Maybe at the beginning of the process
-
-
-
 
     printf("Found pte: physical_frame_no: 0x%x,, valid %x\n", pte->physical_frame_number, pte->valid);
 
@@ -169,6 +157,7 @@ void MM_SwapOn() {
 
 uint32_t MM_PageSize() { return MM_PAGE_SIZE_BYTES; }
 
+// loads physical memory given pid and virtual memory
 int MM_LoadByte(int pid, uint32_t address, uint8_t *value) {
     // pid -> page table
 
@@ -178,14 +167,15 @@ int MM_LoadByte(int pid, uint32_t address, uint8_t *value) {
     uint32_t offset = address & MM_PAGE_OFFSET_MASK;
     uint32_t virtual_frame_number = address >> MM_PAGE_SIZE_BITS;
 
-    struct page_table_entry *page_table = (void*)phys_mem; //This is wrong according to Sheahan
-    struct page_table_entry *pte = &page_table[virtual_frame_number];
+    // get pte
+    struct Page_Table_Entry *page_table = (struct Page_Table_Entry*)&phys_mem[*page_table_loc_register[pid]];
+    struct Page_Table_Entry *pte = &page_table[virtual_frame_number];
 
     //need a physical_pointer
-    uint32_t physical_pointer = (pte->physical_frame_number << MM_PAGE_SIZE_BITS) | offset;
+    uint32_t physical_pointer = (pte->physical_frame_number << MM_PAGE_SIZE_BITS) | offset; // | is bitwise
     //used as an index into phys_mem
 
-    return -1;
+    return physical_pointer;
 } 
 
 int MM_StoreByte(int pid, uint32_t address, uint8_t value) {
@@ -195,6 +185,10 @@ int MM_StoreByte(int pid, uint32_t address, uint8_t value) {
 int MM_GetStats(int pid, struct MM_Stats *stats) {
 	return -1;
 }
+
+// Section 2: File for swap, if backed by disk.
+FILE *swap_disk_file;
+
 
 
 
