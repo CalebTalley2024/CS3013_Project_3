@@ -36,13 +36,16 @@ typedef uint32_t pte_page_t;
 #define MM_PROCESS_VIRTUAL_MEMORY_SIZE_SHIFT	26		// 32MB virtual
 #define MM_BUF_CHUNK_SIZE			64		// malloc/fread size
 #define MM_PTE_SIZE_BYTES			4		// Each page table entry is 32 bits.
+
 #elif defined(TINYMEM)
 typedef uint8_t pte_page_t;
-#define MM_PAGE_SIZE_BITS			4		// 16b pages (fits 4 PTEs)
+#define MM_PAGE_SIZE_BITS			4``		// 16b pages (fits 4 PTEs)
 #define MM_PHYSICAL_MEMORY_SIZE_SHIFT		(MM_PAGE_SIZE_BITS + 3)	// 8 pages physical mem
 #define MM_PROCESS_VIRTUAL_MEMORY_SIZE_SHIFT	(MM_PHYSICAL_MEMORY_SIZE_SHIFT + 1)	// virtual = 2x physical
 #define MM_BUF_CHUNK_SIZE			(1 << MM_PAGE_SIZE_BITS)
 #define MM_PTE_SIZE_BYTES			1		// Each page table entry is 1 byte.
+
+
 #elif defined(LITTLEMEM)
 typedef uint32_t pte_page_t;
 #define MM_PAGE_SIZE_BITS			12		// 4kB pages
