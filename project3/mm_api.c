@@ -22,10 +22,13 @@ uint8_t phys_mem[MM_PHYSICAL_MEMORY_SIZE_BYTES];
     pte_page_t valid: 1;
     pte_page_t swapped: 1;
     pte_page_t writable: 1;
-    uint8_t value; 
+
+    uint8_t value;
 };
 
-int p_fault_counter[MAX_PROCESSES];
+//travk page faults of each process @chris
+int p_fault_counter[MM_MAX_PROCESSES];
+
 
 //Chris's initial idea (not the real one)
 //We have an array of page tables. Maybe we can put this array of
@@ -38,22 +41,12 @@ int p_fault_counter[MAX_PROCESSES];
 // create 4 page table pointers
 // struct Page_Table *page_tables[MM_MAX_PROCESSES];
 
-
-// init page table pointers
-
-//////////////////////// By Google Instructor
-
-// struct page_table_entry *pte = &start_of_page_table[virtual_frame_number];
-
-// struct page_table_entry* page_table_start = &phys_mem[pid * MM_PAGE_TABLE_SIZE_BYTES];
-
-
-/////////////////////////
-
 // page table location reister: holds location of the start of each processes'page table
 uint8_t *page_table_loc_register[MM_MAX_PROCESSES];
 
-int create_page_table_ptr(int pid){ 
+
+// @caleb TODO might have to rework if swapping
+int add_page_table_ptr(int pid){ 
     // make register for pid point to base + offset
     // base = location of the first page in phy_mem
     // offset  = size of a page * pid               (location where the page table should be)
@@ -62,19 +55,12 @@ int create_page_table_ptr(int pid){
     // printf("\nhello");
     page_table_loc_register[pid] =  (uint8_t*)(&phys_mem + offset);
     /*
-
     (uint8_t*): cast address from sum
-    
     (&phys_mem + offset): sum for differnt memory address
-    
     */
 
     return 0;
 }
-
-
-
-
 
 uint8_t used_pages[MM_PHYSICAL_PAGES];  // default value is 0
 
@@ -82,19 +68,15 @@ uint8_t used_pages[MM_PHYSICAL_PAGES];  // default value is 0
 // Per process stats.
 struct MM_Stats process_stats[MM_MAX_PROCESSES];
 
-
-
-
 // init_used_pages();
 // init_used_pages (used_pages);
 //We are here, we are here, we are here!
-
 
 // #TODO use pid when getting page table
 struct MM_MapResult MM_Map(int pid, uint32_t address, int writable) {  
 
     // make page table pointer for this pid
-    create_page_table_ptr(pid);
+    add_page_table_ptr(pid);
 
 
     // make pointer for the start of page table ( also can be considered the first PTE for the talbe)
@@ -158,7 +140,8 @@ void MM_SwapOn() {
 
 uint32_t MM_PageSize() { return MM_PAGE_SIZE_BYTES; }
 
-// loads physical memory given pid and virtual memory
+
+// loads memory address' value into value variable
 int MM_LoadByte(int pid, uint32_t address, uint8_t *value) {
 
 
@@ -168,36 +151,28 @@ int MM_LoadByte(int pid, uint32_t address, uint8_t *value) {
 
     // get pte
     struct Page_Table_Entry *page_table = (struct Page_Table_Entry*)&phys_mem[*page_table_loc_register[pid]];
+    // struct Page_Table_Entry *page_table = (struct Page_Table_Entry*)&phys_mem[*page_table_loc_register[pid]];
     struct Page_Table_Entry *pte = &page_table[virtual_frame_number];
 
-    //need a physical_pointer
-    // uint32_t physical_pointer = (pte->physical_frame_number << MM_PAGE_SIZE_BITS) | offset; // | is bitwise
-    //used as an index into phys_mem
+    // set value to the value stored in pte
+    *value = pte -> value;
 
-    printf("Load: value at PTE: after %d \n", pte->value);
-
-    // return pte->value;
     return 0; // idk how main will know about value, but lets see
 } 
 
+// stores value into memory via PTE pointer
 int MM_StoreByte(int pid, uint32_t address, uint8_t value) {
 
     // pid -> page table
-    // uint32_t offset = address & MM_PAGE_OFFSET_MASK;
+
     uint32_t virtual_frame_number = address >> MM_PAGE_SIZE_BITS;
 
     // get pte
     struct Page_Table_Entry *page_table = (struct Page_Table_Entry*)&phys_mem[*page_table_loc_register[pid]];
     struct Page_Table_Entry *pte = &page_table[virtual_frame_number];
 
-    // uint32_t physical_pointer = (pte->physical_frame_number << MM_PAGE_SIZE_BITS) | offset; // | is bitwise
-
-    // *physical_pointer = value;
-    // change the value for that PTE
-    printf("Store: value at PTE: before %d \n", pte->value);
-    pte->value = value;
-    printf("Store: value at PTE: after %d \n", pte->value);
-
+    // update pte's value
+    pte -> value = value;
     return 0;
 }	
 
@@ -214,7 +189,6 @@ int MM_GetStats(int pid, struct MM_Stats *stats) {
     printf("There are %d total allocated pages\n", totalPages);
     printf("And %d page faults", numberOfPageFaults);
 	return 0;
-
 
     //ok, cool. what does used_pages include? is that the number of total pages for a specific pid?
     //or is it just the current number of pages in phy_mem

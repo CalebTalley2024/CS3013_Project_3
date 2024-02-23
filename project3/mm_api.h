@@ -127,7 +127,7 @@ int MM_StoreByte(int pid, uint32_t address, uint8_t value);
 // of page faults that are occurring.
 int MM_GetStats(int pid, struct MM_Stats *stats);
 
-int create_page_table_ptr(int pid);
+int add_page_table_ptr(int pid);
 
 
 // struct Page_Table_Entry {
