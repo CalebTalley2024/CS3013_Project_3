@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 
 		int rc;
 		int scanned = 0;
-
+		// printf("Instruction Input Format: pid, instruction_type,virtual_address,value");
 		printf("Instruction? ");
 
 		if ((nread = getline(&line, &linesz, input ? input : stdin)) < 0) {
