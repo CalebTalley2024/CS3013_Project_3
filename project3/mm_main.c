@@ -7,6 +7,9 @@
 
 int main(int argc, char **argv)
 {
+
+	init_page_table_loc_register();
+
 	printf("Page = %d bytes, Page table size = %d bytes. All page tables = %d pages\n",
 		MM_PAGE_SIZE_BYTES, MM_PAGE_TABLE_SIZE_BYTES, MM_ALL_PAGE_TABLES_SIZE_PAGES);
 	printf("MM_PTE_SIZE_BYTES %d\n", MM_PTE_SIZE_BYTES);
@@ -18,6 +21,7 @@ int main(int argc, char **argv)
 	printf("MM_MAX_SWAP_SIZE_BYTES %d\n", MM_MAX_SWAP_SIZE_BYTES);
 	printf("\n");
 
+	
 
 	FILE *input = NULL;
 	if (argc == 2) {

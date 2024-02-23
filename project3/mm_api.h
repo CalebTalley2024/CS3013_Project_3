@@ -129,6 +129,7 @@ int MM_GetStats(int pid, struct MM_Stats *stats);
 
 int add_page_table_ptr(int pid);
 
+void init_page_table_loc_register();
 
 // struct Page_Table_Entry {
 //     // pte_page_t page; // What goes here??

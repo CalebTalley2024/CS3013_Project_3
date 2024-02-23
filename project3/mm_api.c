@@ -41,10 +41,17 @@ int p_fault_counter[MM_MAX_PROCESSES];
 // create 4 page table pointers
 // struct Page_Table *page_tables[MM_MAX_PROCESSES];
 
+uint8_t automap_enabled = 0;
+
 // page table location reister: holds location of the start of each processes'page table
 uint8_t *page_table_loc_register[MM_MAX_PROCESSES];
 
+void init_page_table_loc_register(){
+    for (int pid; pid < MM_MAX_PROCESSES; pid++){
+        page_table_loc_register[pid] = NULL;
 
+    }
+}
 // @caleb TODO might have to rework if swapping
 int add_page_table_ptr(int pid){ 
     // make register for pid point to base + offset
@@ -53,7 +60,12 @@ int add_page_table_ptr(int pid){
     // We are assuming that each Page table is the same size, that way we can use pid to move the pointer by an offset each time
     int offset = MM_PAGE_TABLE_SIZE_BYTES* pid;
     // printf("\nhello");
-    page_table_loc_register[pid] =  (uint8_t*)(&phys_mem + offset);
+    
+    page_table_loc_register[pid] =  (uint8_t*)(&phys_mem + offset); // point register to memory slot
+
+    // printf("new loc %p: \n", page_table_loc_register[pid+1]);
+
+    
     /*
     (uint8_t*): cast address from sum
     (&phys_mem + offset): sum for differnt memory address
@@ -78,17 +90,16 @@ struct MM_MapResult MM_Map(int pid, uint32_t address, int writable) {
     // make page table pointer for this pid
     add_page_table_ptr(pid);
 
-
     // make pointer for the start of page table ( also can be considered the first PTE for the talbe)
 
     struct Page_Table_Entry *page_table = (struct Page_Table_Entry*)&phys_mem[*page_table_loc_register[pid]];  // pointing to uint8_t (the one that starts the array)
 
-    
     //start here
     struct MM_MapResult ret = {0};
     static char message[128];
 
     printf("Virtual pointer = %x\n", address);
+
     //we must convert from a virtual pointer to a virtual page
     //and an offset by doing the two things below
     uint32_t offset = address & MM_PAGE_OFFSET_MASK;
@@ -130,32 +141,35 @@ struct MM_MapResult MM_Map(int pid, uint32_t address, int writable) {
     return ret;
 } 
 
-void MM_AutoMap() {
-	// ?
-}
-
-void MM_SwapOn() {
-	// ?
-}
-
-uint32_t MM_PageSize() { return MM_PAGE_SIZE_BYTES; }
-
-
 // loads memory address' value into value variable
 int MM_LoadByte(int pid, uint32_t address, uint8_t *value) {
 
-
-    // pid -> page table
-    // uint32_t offset = address & MM_PAGE_OFFSET_MASK;
+    // printf("\n\nhelllo");
     uint32_t virtual_frame_number = address >> MM_PAGE_SIZE_BITS;
 
-    // get pte
+    // check if register for pid does not point to anything ((nil)/null/0x0)
+    // only map if automap is enabled
+    if ((page_table_loc_register[pid] == NULL)){ 
+        // printf("this only points to null: %p", (void *) page_table_loc_register[pid]);
+        printf("pid register doesnt point to anything\n");
+
+        if(automap_enabled == 1){
+            
+            // map address so that it can be used to load/store
+            // keep writable?
+            MM_Map(pid, address, 1); // 
+        }
+        else{return 1;}
+    }
+    
+    // printf("value at phys_mem: %d\n",phys_mem[*page_table_loc_register[pid]]);
+    // get pte (need Mapping for this)
     struct Page_Table_Entry *page_table = (struct Page_Table_Entry*)&phys_mem[*page_table_loc_register[pid]];
-    // struct Page_Table_Entry *page_table = (struct Page_Table_Entry*)&phys_mem[*page_table_loc_register[pid]];
     struct Page_Table_Entry *pte = &page_table[virtual_frame_number];
 
     // set value to the value stored in pte
     *value = pte -> value;
+    // printf("%p",(void*)pte);
 
     return 0; // idk how main will know about value, but lets see
 } 
@@ -164,8 +178,22 @@ int MM_LoadByte(int pid, uint32_t address, uint8_t *value) {
 int MM_StoreByte(int pid, uint32_t address, uint8_t value) {
 
     // pid -> page table
-
     uint32_t virtual_frame_number = address >> MM_PAGE_SIZE_BITS;
+
+    // check if register for pid does not point to anything ((nil)/null/0x0)
+    // only map if automap is enabled
+    if ((page_table_loc_register[pid] == NULL)){ 
+        // printf("this only points to null: %p", (void *) page_table_loc_register[pid]);
+        printf("pid register doesnt point to anything\n");
+
+        if(automap_enabled == 1){
+            
+            // map address so that it can be used to load/store
+            // keep writable?
+            MM_Map(pid, address, 1); // 
+        }
+        else{return 1;}
+    }
 
     // get pte
     struct Page_Table_Entry *page_table = (struct Page_Table_Entry*)&phys_mem[*page_table_loc_register[pid]];
@@ -175,6 +203,24 @@ int MM_StoreByte(int pid, uint32_t address, uint8_t value) {
     pte -> value = value;
     return 0;
 }	
+
+
+
+// Section 2: File for swap, if backed by disk.
+FILE *swap_disk_file;
+
+
+uint32_t MM_PageSize() { return MM_PAGE_SIZE_BYTES; }
+
+
+void MM_AutoMap() {
+	automap_enabled = 1;
+}
+
+void MM_SwapOn() {
+	// ?
+}
+
 
 //for the given pid, find the number of allocated pages and number
 //of page faults. I am not sure how we can return both at once...
@@ -194,9 +240,6 @@ int MM_GetStats(int pid, struct MM_Stats *stats) {
     //or is it just the current number of pages in phy_mem
     
 }
-
-// Section 2: File for swap, if backed by disk.
-FILE *swap_disk_file;
 
 
 
