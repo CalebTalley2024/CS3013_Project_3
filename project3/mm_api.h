@@ -135,7 +135,7 @@ int MM_GetStats(int pid, struct MM_Stats *stats);
     pte_page_t physical_frame_number : 20;  // 20 bits
     pte_page_t valid: 1; 
     pte_page_t swapped: 1;
-    pte_page_t writable: 1;
+    pte_page_t writable : 1;
 
     uint8_t value: 8;
 };
@@ -145,7 +145,8 @@ void init_page_table_loc_register();
 
 int get_rand_int(int min, int max);
 
-void page_fault(struct Page_Table_Entry * pte_in, struct Page_Table_Entry * pte_out, int PFN_out);
+// void page_fault(struct Page_Table_Entry * pte_in, struct Page_Table_Entry * pte_out, int PFN_out);
+int page_fault(struct Page_Table_Entry * pte_in);
 // struct Page_Table_Entry {
 //     // pte_page_t page; // What goes here??
 //     pte_page_t physical_frame_number : 20; 
