@@ -127,10 +127,25 @@ int MM_StoreByte(int pid, uint32_t address, uint8_t value);
 // of page faults that are occurring.
 int MM_GetStats(int pid, struct MM_Stats *stats);
 
+
+// @caleb custom functions
+// A single page table entry.
+// pte_page_t page; // What goes here??
+ struct Page_Table_Entry {
+    pte_page_t physical_frame_number : 20;  // 20 bits
+    pte_page_t valid: 1; 
+    pte_page_t swapped: 1;
+    pte_page_t writable: 1;
+
+    uint8_t value: 8;
+};
 int add_page_table_ptr(int pid);
 
 void init_page_table_loc_register();
 
+int get_rand_int(int min, int max);
+
+void page_fault(struct Page_Table_Entry * pte_in, struct Page_Table_Entry * pte_out, int PFN_out);
 // struct Page_Table_Entry {
 //     // pte_page_t page; // What goes here??
 //     pte_page_t physical_frame_number : 20; 
