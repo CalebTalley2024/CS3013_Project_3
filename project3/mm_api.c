@@ -15,6 +15,8 @@
 //should this just be a global variable,
 //or should this be included in each page table?
 
+int roundRobinIndex = 0;//initialized to 0
+
 // gets random integer btw 0 and max     2 and 10
 int get_rand_int(int min, int max) {
     srand(time(NULL)); // Seed the random number generator
@@ -136,6 +138,7 @@ int MM_LoadByte(int pid, uint32_t address, uint8_t *value) {
         if(automap_enabled == 1){
             // map address so that it can be used to load/store
             // keep writable
+            // also makes valid bit 1
             MM_Map(pid, address, 1); // 
         }
         else{
@@ -184,6 +187,7 @@ int MM_StoreByte(int pid, uint32_t address, uint8_t value) {
         if(automap_enabled == 1){
             // map address so that it can be used to load/store
             // keep writable
+            // also makes valid bit 1
             MM_Map(pid, address, 1); // 
         }
         else{return 1;}
@@ -212,7 +216,8 @@ int MM_StoreByte(int pid, uint32_t address, uint8_t value) {
     }
     else{
         // printf("Store Error: cannot write to 'read only' page\n");
-        printf("store failed\n");
+        // printf("store failed\n");
+        return 1;
     }
     
     return 0;
@@ -270,7 +275,7 @@ int page_fault(struct Page_Table_Entry * pte_in, int pid, uint32_t VPN){  //
 
     printf("make_resident, eject phys %d pid %d vp %d pp %d\n", PFN, pid, VPN, PFN);
     
-    disk = fopen("disk.txt","r+"); // make disk point to dist.txt file (read + write permissions)
+    CHECK((disk = fopen("disk.txt","r+"))!=NULL); // make disk point to dist.txt file (read + write permissions)
 
     if (disk == NULL) {
         perror("Error opening file");
@@ -280,10 +285,9 @@ int page_fault(struct Page_Table_Entry * pte_in, int pid, uint32_t VPN){  //
     fseek(disk, offset, SEEK_SET); // position file position to top of txt file // <TODO> will have to change this for each page
     uint8_t buffer[MM_PTE_SIZE_BYTES]; // buffer to help swap phys_mem[offset] and disk
     memcpy(buffer,&phys_mem[offset],MM_PTE_SIZE_BYTES); //phys_mem[offset] --> buffer
-    int result = fread(&phys_mem[offset], MM_PTE_SIZE_BYTES, 1, disk); // phys_mem[offset] <-- disk    
-    if (result != 1) {
-        perror("Error reading from disk");
-    }  
+
+    CHECK(fread(&phys_mem[offset], MM_PTE_SIZE_BYTES, 1, disk) == 1); // phys_mem[offset] <-- disk    
+
     fwrite(buffer, MM_PTE_SIZE_BYTES, 1, disk); // write pte_old's page, into disk, buffer --> disk
 
     // update pte_out, which is going to disk
