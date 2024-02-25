@@ -4,12 +4,13 @@
 
 Use this to run: `make ./mm`
 
-
+askf or grading on Project 2
 Things that still need to be done:
 
-ReadMe
+ReadMe ( explain, explain each test, etc)
 Tests
 check that we have everything
+try having multiple processes
 
 Optional
 TINY and BIG MEM implementation
@@ -24,36 +25,20 @@ Page Ejection Algs
 Questions
 
 
-should I page fault for trying to store in a "read only" disk (eg. making a copy that is writable)?
-
 valid bit vs swapped bit
 
 is it fine to not have virtual page number? (no virtual memory slot?)
 
-virtual frame number = virtual page number?
 
-make_resident, eject phys 1 pid 0 vp 0 pp 1
-
-from what I can tell this means..
-
-phys 1: Refers to physical frame number 1.
-pid 0: Refers to Process ID 0.
-vp 0: Refers to Virtual Page number 0.
-pp 1: Refers to Physical Page number 1.
-
-are phys and pp not the same thing?
-
-do I count the page table page as an allocated page when it comes to `pages_allocated`?
 
 
 // do the below stats look right. It's far less than what you had in your example for part 2
 
 Output: `Stats for pid 0: 4 pages_allocated 5 page_faults`
 
-For tests, we just have to split the example  input's into separate tests, correct. Were you expecting this in one text file, or multiple test txt files in a folder?
 
+Thanks for your comments
 
-Will there be extra credit for Project 4, if so, how much
+I meant to ask, if it fine to not have an explicit virtual memory array, meaning that virtual addresses are used, but not explicity associated with a virtual memory array. I dont have that at the moment I was fine when it came to running examples
 
-how points work here.
 

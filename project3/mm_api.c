@@ -30,8 +30,8 @@ int get_rand_int(int min, int max) {
 uint8_t phys_mem[MM_PHYSICAL_MEMORY_SIZE_BYTES];
 
 //travk page faults of each process @chris
-int p_fault_counter[MM_MAX_PROCESSES];
-
+int num_page_faults[MM_MAX_PROCESSES]; // total num page faults per process
+int pages_allocated[MM_MAX_PROCESSES]; // totl num pages every (not just currently) allocated in phy_mem per process
 
 // Section 2: File for swap, if backed by disk.
 FILE *disk;
@@ -39,7 +39,7 @@ FILE *disk;
 uint8_t automap_enabled = 0;
 uint8_t swap_enabled = 0;
 // int pages_allocated = 1; // assume that the first page (for pte's is)
-int num_page_faults = 0;
+
 // page table location reister: holds location of the start of each processes'page table
 struct Page_Table_Entry* page_table_loc_register[MM_MAX_PROCESSES];
 
@@ -89,6 +89,8 @@ struct MM_MapResult MM_Map(int pid, uint32_t address, int writable) {
     //when should we make the page table? Maybe at the beginning of the process
     // printf("Found pte: physical_frame_no: 0x%x,, valid %x\n", pte->PFN, pte->valid);
     // why start at 0 for i? -->  page table is at 0
+
+    used_pages[0] = 1; // page table page is used
     for(int PFN = MM_ALL_PAGE_TABLES_SIZE_PAGES; PFN < MM_PHYSICAL_PAGES; PFN++){
         // printf("Considering physical frame %d\n", PFN);
         if(used_pages[PFN] == 0){
@@ -97,6 +99,8 @@ struct MM_MapResult MM_Map(int pid, uint32_t address, int writable) {
             pte -> VPN = VPN;
             pte->PFN = PFN; // Page Frame Number = Physical Frame Number = PFN
             pte->valid = 1;
+            pages_allocated[pid]++;
+
             ret.new_mapping = 1;
             ret.physical_frame = PFN;
             // printf("pte %p -> writable: %d\n", (void *)pte,pte-> writable);
@@ -114,6 +118,9 @@ struct MM_MapResult MM_Map(int pid, uint32_t address, int writable) {
         pte-> VPN = VPN;
         pte-> PFN = PFN;
         pte-> valid = 1;
+        pages_allocated[pid]++;
+
+
         ret.new_mapping = 1;
         ret.physical_frame = PFN;
         return ret;
@@ -132,7 +139,7 @@ int MM_LoadByte(int pid, uint32_t address, uint8_t *value) {
     uint32_t VPN = address >> MM_PAGE_SIZE_BITS;
     // check if register for pid does not point to anything ((nil)/null/0x0)
     // only map if automap is enabled
-    if ((page_table_loc_register[pid] == NULL)){  // change to 'CHECK'?
+    if (page_table_loc_register[pid] == NULL){  // change to 'CHECK'?
         // printf("this only points to null: %p", (void *) page_table_loc_register[pid]);
 
         if(automap_enabled == 1){
@@ -142,7 +149,7 @@ int MM_LoadByte(int pid, uint32_t address, uint8_t *value) {
             MM_Map(pid, address, 1); // 
         }
         else{
-            printf("Load Error: pid register doesnt point to anything\n");
+            printf("Load: pid register doesnt point to anything\n");
             return 1;
         }
     }
@@ -182,7 +189,7 @@ int MM_StoreByte(int pid, uint32_t address, uint8_t value) {
     if ((page_table_loc_register[pid] == NULL)){ // change to 'CHECK'?
     // CHECK(page_table_loc_register[pid]);
         // printf("this only points to null: %p", (void *) page_table_loc_register[pid]);
-        printf("pid register doesnt point to anything\n");
+        
 
         if(automap_enabled == 1){
             // map address so that it can be used to load/store
@@ -190,7 +197,11 @@ int MM_StoreByte(int pid, uint32_t address, uint8_t value) {
             // also makes valid bit 1
             MM_Map(pid, address, 1); // 
         }
-        else{return 1;}
+        else
+            {
+            printf("Store: pid register doesnt point to anything\n");
+            return 1;
+            }
     }
 
     // get pte
@@ -238,12 +249,12 @@ void MM_SwapOn() {
 //of page faults. I am not sure how we can return both at once...
 int MM_GetStats(int pid, struct MM_Stats *stats) {
 
-    int pages_allocated = 1;  // start at one (b/c page table page)
+    // int pages_allocated = 1;  // start at one (b/c page table page)
     // sum up all values (+1 means a page is allocated, +0, which does not affect sum means page is not allocated)
-    for (int i = MM_ALL_PAGE_TABLES_SIZE_PAGES; i < MM_PHYSICAL_PAGES; i++) pages_allocated  += used_pages[i];
+    // for (int i = MM_ALL_PAGE_TABLES_SIZE_PAGES; i < MM_PHYSICAL_PAGES; i++) pages_allocated  += used_pages[i];
     // printf("Stats for pid %d: %d pages allocated and %d page faults", pid, pages_allocated, num_page_faults);
-    stats -> pages_allocated = pages_allocated; 
-    stats -> page_faults = num_page_faults;
+    stats -> pages_allocated = pages_allocated[pid]; 
+    stats -> page_faults = num_page_faults[pid];
 	return 0;
 
     //ok, cool. what does used_pages include? is that the number of total pages for a specific pid?
@@ -301,7 +312,7 @@ int page_fault(struct Page_Table_Entry * pte_in, int pid, uint32_t VPN){  //
     pte_in -> swapped = 0; // is in disk
 
     // Map Page
-    num_page_faults++; // add to the number of page faults
+    num_page_faults[pid]++; // add to the number of page faults
 
     fclose(disk); // close page
     return 0;
