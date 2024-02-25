@@ -287,26 +287,18 @@ int MM_GetStats(int pid, struct MM_Stats *stats) {
     //for extra credit, PFN can be changed to be just the 0th index
     //also, maybe there is a way to track how long it has been since
     //a page has been accessed, in which case we choose the largest one
-
     //linked list of index numbers?
     //most recent at the front, when page is accessed
     //it is put at the front, and if it was already in
     //the list somewhere else it is removed from that spot
     //I imagine that whenever load_byte, store_byte, and
     //MM_Map is called that this linked list idea should be called
-    /*page fault instances
     
-    - Map (swap_type = m): try to map page, but no open pages
-    - Load (swap_type = l): try to load page, but valid bit = 0 (not in page table)
-    - Store (swap_type = s): try to write to a read only page ( writable = 0)
-    */ 
-    
-    // if there are no page tables available, do a page fault
-
-    // pte_in: pte that will replace pte_out in the page table
-    // pte_out: pte that will be placed in disk
-
-    // returns PFN
+/*page fault instances
+- Map: try to map page, but no open pages
+- Load: try to load page, but valid bit = 0 (not in page table)
+*/ 
+// pte_in: pte that will replace pte_out in the page table
 int page_fault(struct Page_Table_Entry * pte_in, int pid, uint32_t VPN){  // 
 
     int PFN = get_rand_int(MM_ALL_PAGE_TABLES_SIZE_PAGES, MM_PHYSICAL_PAGES); 
@@ -325,22 +317,10 @@ int page_fault(struct Page_Table_Entry * pte_in, int pid, uint32_t VPN){  //
         perror("Error opening file");
         exit(EXIT_FAILURE);
     }
-    /* int fseek(FILE *stream, long offset, int whence);
-     stream: pointer
-     offset: # of bytes offset from whence position
-     whence:
-        - SEEK_SET: Beginning of the file.
-        - SEEK_CUR: Current position indicator.
-        - SEEK_END: End of the file.*/
-    
-    // page size in bytes: MM_PTE_SIZE_BYTES
-    // int offset = PFN_out * MM_PTE_SIZE_BYTES;
-
+    // SEEK_SET: Beginning of the file.
     fseek(disk, offset, SEEK_SET); // position file position to top of txt file // <TODO> will have to change this for each page
     uint8_t buffer[MM_PTE_SIZE_BYTES]; // buffer to help swap phys_mem[offset] and disk
-
     memcpy(buffer,&phys_mem[offset],MM_PTE_SIZE_BYTES); //phys_mem[offset] --> buffer
-    // size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
     int result = fread(&phys_mem[offset], MM_PTE_SIZE_BYTES, 1, disk); // phys_mem[offset] <-- disk    
     if (result != 1) {
         perror("Error reading from disk");
@@ -359,8 +339,6 @@ int page_fault(struct Page_Table_Entry * pte_in, int pid, uint32_t VPN){  //
 
     fclose(disk); // close page
     return 0;
-
-// make_resident, eject phys 3 pid 0 vp 2 pp 3
 }
 
     
