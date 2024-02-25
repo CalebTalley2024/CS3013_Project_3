@@ -304,7 +304,7 @@ int page_fault(struct Page_Table_Entry * pte_in, int pid, uint32_t VPN){  //
 
     // update pte_out, which is going to disk
     pte_old -> PFN = -1; // -1; not assigned to physical frame number
-    pte_old -> valid = 0; // 
+    // pte_old -> valid = 0; // 
     pte_old -> swapped = 1; // is in disk
     
     //update pte_in, the pte being swapped into page table

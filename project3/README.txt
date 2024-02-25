@@ -31,12 +31,6 @@ is it fine to not have virtual page number? (no virtual memory slot?)
 
 
 
-
-// do the below stats look right. It's far less than what you had in your example for part 2
-
-Output: `Stats for pid 0: 4 pages_allocated 5 page_faults`
-
-
 Thanks for your comments
 
 I meant to ask, if it fine to not have an explicit virtual memory array, meaning that virtual addresses are used, but not explicity associated with a virtual memory array. I dont have that at the moment I was fine when it came to running examples
