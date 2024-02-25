@@ -37,6 +37,7 @@ int pages_allocated[MM_MAX_PROCESSES]; // totl num pages every (not just current
 FILE *disk;
 
 uint8_t automap_enabled = 0;
+
 uint8_t swap_enabled = 0;
 // int pages_allocated = 1; // assume that the first page (for pte's is)
 
