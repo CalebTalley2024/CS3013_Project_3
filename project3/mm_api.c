@@ -74,14 +74,6 @@ int add_page_table_ptr(int pid){
     
     page_table_loc_register[pid] = (struct Page_Table_Entry*) (&phys_mem[offset]); // point register to memory slot
 
-    // printf("new loc %p: \n", page_table_loc_register[pid+1]);
-
-    
-    /*
-    (uint8_t*): cast address from sum
-    (&phys_mem + offset): sum for differnt memory address
-    */
-
     return 0;
 }
 
@@ -94,7 +86,6 @@ struct MM_Stats process_stats[MM_MAX_PROCESSES];
 // init_used_pages();
 // init_used_pages (used_pages);
 //We are here, we are here, we are here!
-
 // #TODO use pid when getting page table
 struct MM_MapResult MM_Map(int pid, uint32_t address, int writable) {  
 
@@ -110,7 +101,6 @@ struct MM_MapResult MM_Map(int pid, uint32_t address, int writable) {
     static char message[128];
 
     // printf("Virtual pointer = %x\n", address);
-
     //we must convert from a virtual pointer to a virtual page
     //and an offset by doing the two things below
     // uint32_t offset = address & MM_PAGE_OFFSET_MASK;
@@ -120,12 +110,9 @@ struct MM_MapResult MM_Map(int pid, uint32_t address, int writable) {
     // printf("Offset = %x\n", offset);
 
     struct Page_Table_Entry *pte = &page_table[virtual_frame_number];
-
     //when should we make the page table? Maybe at the beginning of the process
 
     // printf("Found pte: physical_frame_no: 0x%x,, valid %x\n", pte->physical_frame_number, pte->valid);
-
-
     // why start at 0 for i? -->  page table is at 0
     for(int PFN = MM_ALL_PAGE_TABLES_SIZE_PAGES; PFN < MM_PHYSICAL_PAGES; PFN++){
         // printf("Considering physical frame %d\n", PFN);
@@ -133,12 +120,13 @@ struct MM_MapResult MM_Map(int pid, uint32_t address, int writable) {
         if(used_pages[PFN] == 0){
             used_pages[PFN] = 1;
             pte -> writable = writable;
+            pte -> virtual_frame_number = virtual_frame_number;
             pte->physical_frame_number = PFN;
             pte->valid = 1;
             ret.new_mapping = 1;
             ret.physical_frame = PFN;
 
-            printf("pte %p -> writable: %d\n", (void *)pte,pte-> writable);
+            // printf("pte %p -> writable: %d\n", (void *)pte,pte-> writable);
             return ret;
         }
     }
@@ -147,8 +135,14 @@ struct MM_MapResult MM_Map(int pid, uint32_t address, int writable) {
     if (swap_enabled){
         // page fault if there are no pages for us to alloate the page
 
-        int PFN = page_fault(pte);
+        page_fault(pte,pid,virtual_frame_number);
 
+        int PFN = pte -> physical_frame_number;
+        used_pages[PFN] = 1;
+        pte-> writable = writable;
+        pte-> virtual_frame_number = virtual_frame_number;
+        pte-> physical_frame_number = PFN;
+        pte-> valid = 1;
         ret.new_mapping = 1;
         ret.physical_frame = PFN;
         return ret;
@@ -192,12 +186,7 @@ int MM_LoadByte(int pid, uint32_t address, uint8_t *value) {
 
         if (swap_enabled){
             // page fault if there are no pages for us to alloate the page
-            // int PFN_old = get_rand_int(MM_ALL_PAGE_TABLES_SIZE_PAGES, MM_PHYSICAL_PAGES); 
-            // int offset_old = PFN_old * MM_PTE_SIZE_BYTES; // get the offset for the random index
-            // struct Page_Table_Entry *pte_old = (struct Page_Table_Entry*) &phys_mem[offset_old];
-            // page_fault(pte, pte_old,PFN_old); // get pte and place pte_old into
-
-            page_fault(pte);
+            page_fault(pte,pid,virtual_frame_number);
         }
         else{ // not swapped
             printf("Load failed: page not in memory");
@@ -226,7 +215,6 @@ int MM_StoreByte(int pid, uint32_t address, uint8_t value) {
         printf("pid register doesnt point to anything\n");
 
         if(automap_enabled == 1){
-            
             // map address so that it can be used to load/store
             // keep writable
             MM_Map(pid, address, 1); // 
@@ -237,10 +225,20 @@ int MM_StoreByte(int pid, uint32_t address, uint8_t value) {
     // get pte
     struct Page_Table_Entry *page_table = page_table_loc_register[pid];
     struct Page_Table_Entry *pte = &page_table[virtual_frame_number];
-
-
     // update pte's value if the page is writable
-    printf("pte %p -> writable: %d\n", (void *)pte,pte-> writable);
+    // printf("pte %p -> writable: %d\n", (void *)pte,pte-> writable);
+
+    if (pte -> swapped == 1){
+
+        if (swap_enabled){
+            // page fault if there are no pages for us to alloate the page
+            page_fault(pte,pid,virtual_frame_number);
+        }
+        else{ // not swapped
+            printf("Load failed: page not in memory");
+        }
+    }
+    
     if (pte ->writable){
         pte -> value = value;
 
@@ -283,6 +281,19 @@ int MM_GetStats(int pid, struct MM_Stats *stats) {
     
 }
 
+
+    // @ chris
+    //int PFN = 0;
+    //for extra credit, PFN can be changed to be just the 0th index
+    //also, maybe there is a way to track how long it has been since
+    //a page has been accessed, in which case we choose the largest one
+
+    //linked list of index numbers?
+    //most recent at the front, when page is accessed
+    //it is put at the front, and if it was already in
+    //the list somewhere else it is removed from that spot
+    //I imagine that whenever load_byte, store_byte, and
+    //MM_Map is called that this linked list idea should be called
     /*page fault instances
     
     - Map (swap_type = m): try to map page, but no open pages
@@ -296,42 +307,45 @@ int MM_GetStats(int pid, struct MM_Stats *stats) {
     // pte_out: pte that will be placed in disk
 
     // returns PFN
-int page_fault(struct Page_Table_Entry * pte_in){
+int page_fault(struct Page_Table_Entry * pte_in, int pid, uint32_t VPN){  // 
 
     int PFN = get_rand_int(MM_ALL_PAGE_TABLES_SIZE_PAGES, MM_PHYSICAL_PAGES); 
-    //for extra credit, PFN can be changed to be just the 0th index
-    //also, maybe there is a way to track how long it has been since
-    //a page has been accessed. 
+
+
     int offset = PFN* MM_PTE_SIZE_BYTES; // get the offset for the random index
     struct Page_Table_Entry *pte_old = (struct Page_Table_Entry*) &phys_mem[offset];
 
-    printf("page faulting needed \n");
+    // printf("page faulting needed \n");
+
+    printf("make_resident, eject phys %d pid %d vp %d pp %d\n", PFN, pid, VPN, PFN);
     
-    disk = fopen("disk.txt","w"); // make disk point to dist.txt file (read + write permissions)
+    disk = fopen("disk.txt","r+"); // make disk point to dist.txt file (read + write permissions)
 
     if (disk == NULL) {
         perror("Error opening file");
         exit(EXIT_FAILURE);
     }
-
-    // from MEMORY to DISK
-
-    // if (swap_type == "m"){  
     /* int fseek(FILE *stream, long offset, int whence);
      stream: pointer
      offset: # of bytes offset from whence position
      whence:
         - SEEK_SET: Beginning of the file.
         - SEEK_CUR: Current position indicator.
-        - SEEK_END: End of the file.
-    */
+        - SEEK_END: End of the file.*/
+    
     // page size in bytes: MM_PTE_SIZE_BYTES
     // int offset = PFN_out * MM_PTE_SIZE_BYTES;
 
-    fseek(disk, offset,SEEK_SET); // position file position to top of txt file // TODO will have to change this for each page
+    fseek(disk, offset, SEEK_SET); // position file position to top of txt file // <TODO> will have to change this for each page
+    uint8_t buffer[MM_PTE_SIZE_BYTES]; // buffer to help swap phys_mem[offset] and disk
 
+    memcpy(buffer,&phys_mem[offset],MM_PTE_SIZE_BYTES); //phys_mem[offset] --> buffer
     // size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
-    fwrite(&phys_mem[offset], offset, 1, disk); // write page, that pte_out refers to, into disk
+    int result = fread(&phys_mem[offset], MM_PTE_SIZE_BYTES, 1, disk); // phys_mem[offset] <-- disk    
+    if (result != 1) {
+        perror("Error reading from disk");
+    }  
+    fwrite(buffer, MM_PTE_SIZE_BYTES, 1, disk); // write pte_old's page, into disk, buffer --> disk
 
     // update pte_out, which is going to disk
     pte_old -> physical_frame_number = -1; // -1; not assigned to physical frame number
@@ -339,25 +353,12 @@ int page_fault(struct Page_Table_Entry * pte_in){
     pte_old -> swapped = 1; // is in disk
     
     //update pte_in, the pte being swapped into page table
-    
-    
     pte_in -> physical_frame_number = PFN;
     pte_in -> valid = 1; // 
     pte_in -> swapped = 0; // is in disk
-    
-    // used_pages[PFN_out] == 0; // reset used page at the PFN
 
-    // resume execution
-    // }
-
-
-    // from DISK to Memory (swapped = 1)
-    // fread(&phys_mem[offset], offset, 1, disk); // write what is at the pointer into disk // needed for getting page back
-
-
-    // return 0;
     fclose(disk); // close page
-    return PFN;
+    return 0;
 
 // make_resident, eject phys 3 pid 0 vp 2 pp 3
 }
