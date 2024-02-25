@@ -5,6 +5,25 @@
 Use this to run: `make ./mm`
 
 
+Things that still need to be done:
+
+ReadMe
+Tests
+check that we have everything
+
+Optional
+TINY and BIG MEM implementation
+
+DOSBox
+
+Page Ejection Algs
+
+
+
+
+Questions
+
+
 should I page fault for trying to store in a "read only" disk (eg. making a copy that is writable)?
 
 valid bit vs swapped bit
