@@ -9,6 +9,12 @@
 // All implementation goes in this file.                                     //
 ///////////////////////////////////////////////////////////////////////////////
 
+//Can you read this, Caleb?
+//int roundRobin = 0;
+//this will be for the round robin style eviction algorithm
+//should this just be a global variable,
+//or should this be included in each page table?
+
 // gets random integer btw 0 and max     2 and 10
 int get_rand_int(int min, int max) {
     srand(time(NULL)); // Seed the random number generator
@@ -21,17 +27,6 @@ int get_rand_int(int min, int max) {
 // first 4 page frames are reserved for process page tables
 uint8_t phys_mem[MM_PHYSICAL_MEMORY_SIZE_BYTES];
 
-// A single page table entry.
-// pte_page_t page; // What goes here??
-//  struct Page_Table_Entry {
-//     pte_page_t physical_frame_number : 20;  // 20 bits
-//     pte_page_t valid: 1; 
-//     pte_page_t swapped: 1;
-//     pte_page_t writable: 1;
-
-//     uint8_t value: 8;
-// };
-
 //travk page faults of each process @chris
 int p_fault_counter[MM_MAX_PROCESSES];
 
@@ -39,21 +34,10 @@ int p_fault_counter[MM_MAX_PROCESSES];
 // Section 2: File for swap, if backed by disk.
 FILE *disk;
 
-//Chris's initial idea (not the real one)
-//We have an array of page tables. Maybe we can put this array of
-//page tables inside physical memory. In this way, we can access
-//these page tables by pointing to this part of phys_mem, and then
-//accessing the pid part of the array by using the pid #. page_tables[pid]
-//start of phys_mem -> page_tables[pid]
-
-
-// create 4 page table pointers
-// struct Page_Table *page_tables[MM_MAX_PROCESSES];
-
 uint8_t automap_enabled = 0;
-
 uint8_t swap_enabled = 0;
-
+// int pages_allocated = 1; // assume that the first page (for pte's is)
+int num_page_faults = 0;
 // page table location reister: holds location of the start of each processes'page table
 struct Page_Table_Entry* page_table_loc_register[MM_MAX_PROCESSES];
 
@@ -70,10 +54,7 @@ int add_page_table_ptr(int pid){
     // offset  = size of a page * pid               (location where the page table should be)
     // We are assuming that each Page table is the same size, that way we can use pid to move the pointer by an offset each time
     int offset = MM_PAGE_TABLE_SIZE_BYTES* pid;
-    // printf("\nhello");
-    
     page_table_loc_register[pid] = (struct Page_Table_Entry*) (&phys_mem[offset]); // point register to memory slot
-
     return 0;
 }
 
@@ -88,35 +69,26 @@ struct MM_Stats process_stats[MM_MAX_PROCESSES];
 //We are here, we are here, we are here!
 // #TODO use pid when getting page table
 struct MM_MapResult MM_Map(int pid, uint32_t address, int writable) {  
-
     // make page table pointer for this pid
     add_page_table_ptr(pid);
-
     // make pointer for the start of page table ( also can be considered the first PTE for the talbe)
-
     struct Page_Table_Entry *page_table = page_table_loc_register[pid];  // pointing to uint8_t (the one that starts the array)
-
     //start here
     struct MM_MapResult ret = {0};
     static char message[128];
-
     // printf("Virtual pointer = %x\n", address);
     //we must convert from a virtual pointer to a virtual page
     //and an offset by doing the two things below
     // uint32_t offset = address & MM_PAGE_OFFSET_MASK;
     uint32_t virtual_frame_number = address >> MM_PAGE_SIZE_BITS;
-
     // printf("Virtual frame number = %x\n", virtual_frame_number);
     // printf("Offset = %x\n", offset);
-
     struct Page_Table_Entry *pte = &page_table[virtual_frame_number];
     //when should we make the page table? Maybe at the beginning of the process
-
     // printf("Found pte: physical_frame_no: 0x%x,, valid %x\n", pte->physical_frame_number, pte->valid);
     // why start at 0 for i? -->  page table is at 0
     for(int PFN = MM_ALL_PAGE_TABLES_SIZE_PAGES; PFN < MM_PHYSICAL_PAGES; PFN++){
         // printf("Considering physical frame %d\n", PFN);
-        
         if(used_pages[PFN] == 0){
             used_pages[PFN] = 1;
             pte -> writable = writable;
@@ -125,16 +97,13 @@ struct MM_MapResult MM_Map(int pid, uint32_t address, int writable) {
             pte->valid = 1;
             ret.new_mapping = 1;
             ret.physical_frame = PFN;
-
             // printf("pte %p -> writable: %d\n", (void *)pte,pte-> writable);
             return ret;
         }
     }
-
     // Page is NOT found if rest of code is executed
     if (swap_enabled){
         // page fault if there are no pages for us to alloate the page
-
         page_fault(pte,pid,virtual_frame_number);
 
         int PFN = pte -> physical_frame_number;
@@ -158,9 +127,7 @@ struct MM_MapResult MM_Map(int pid, uint32_t address, int writable) {
 // loads memory address' value into value variable
 int MM_LoadByte(int pid, uint32_t address, uint8_t *value) {
 
-    // printf("\n\nhelllo");
     uint32_t virtual_frame_number = address >> MM_PAGE_SIZE_BITS;
-
     // check if register for pid does not point to anything ((nil)/null/0x0)
     // only map if automap is enabled
     if ((page_table_loc_register[pid] == NULL)){  // change to 'CHECK'?
@@ -244,7 +211,8 @@ int MM_StoreByte(int pid, uint32_t address, uint8_t value) {
 
     }
     else{
-        printf("Store Error: cannot write to 'read only' page\n");
+        // printf("Store Error: cannot write to 'read only' page\n");
+        printf("store failed\n");
     }
     
     return 0;
@@ -261,26 +229,21 @@ void MM_SwapOn() {
     swap_enabled = 1;
 }
 
-
 //for the given pid, find the number of allocated pages and number
 //of page faults. I am not sure how we can return both at once...
-
 int MM_GetStats(int pid, struct MM_Stats *stats) {
-    int totalPages, numberOfPageFaults;
-    totalPages = -1;
-    numberOfPageFaults = -1;
 
-
-    printf("For pid: %d\n", pid);
-    printf("There are %d total allocated pages\n", totalPages);
-    printf("And %d page faults", numberOfPageFaults);
+    int pages_allocated = 1;  // start at one (b/c page table page)
+    // sum up all values (+1 means a page is allocated, +0, which does not affect sum means page is not allocated)
+    for (int i = MM_ALL_PAGE_TABLES_SIZE_PAGES; i < MM_PHYSICAL_PAGES; i++) pages_allocated  += used_pages[i];
+    // printf("Stats for pid %d: %d pages allocated and %d page faults", pid, pages_allocated, num_page_faults);
+    stats -> pages_allocated = pages_allocated; 
+    stats -> page_faults = num_page_faults;
 	return 0;
 
     //ok, cool. what does used_pages include? is that the number of total pages for a specific pid?
     //or is it just the current number of pages in phy_mem
-    
 }
-
 
     // @ chris
     //int PFN = 0;
@@ -301,13 +264,9 @@ int MM_GetStats(int pid, struct MM_Stats *stats) {
 // pte_in: pte that will replace pte_out in the page table
 int page_fault(struct Page_Table_Entry * pte_in, int pid, uint32_t VPN){  // 
 
-    int PFN = get_rand_int(MM_ALL_PAGE_TABLES_SIZE_PAGES, MM_PHYSICAL_PAGES); 
-
-
+    int PFN = get_rand_int(MM_ALL_PAGE_TABLES_SIZE_PAGES, MM_PHYSICAL_PAGES); // @chris: chagne this for the extra credit, nothing else should have to change here
     int offset = PFN* MM_PTE_SIZE_BYTES; // get the offset for the random index
     struct Page_Table_Entry *pte_old = (struct Page_Table_Entry*) &phys_mem[offset];
-
-    // printf("page faulting needed \n");
 
     printf("make_resident, eject phys %d pid %d vp %d pp %d\n", PFN, pid, VPN, PFN);
     
@@ -336,6 +295,9 @@ int page_fault(struct Page_Table_Entry * pte_in, int pid, uint32_t VPN){  //
     pte_in -> physical_frame_number = PFN;
     pte_in -> valid = 1; // 
     pte_in -> swapped = 0; // is in disk
+
+    // Map Page
+    num_page_faults++; // add to the number of page faults
 
     fclose(disk); // close page
     return 0;

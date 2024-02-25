@@ -26,7 +26,6 @@ is it fine to not have virtual page number? (no virtual memory slot?)
 
 virtual frame number = virtual page number?
 
-
 make_resident, eject phys 1 pid 0 vp 0 pp 1
 
 from what I can tell
@@ -37,3 +36,16 @@ vp 0: Refers to Virtual Page number 0.
 pp 1: Refers to Physical Page number 1.
 
 arnt phys and pp the same?
+
+does pages_allocated mean the current amount of pages pages_allocated, or the total amount of pages we have allocated (i.e the amount of times we have called map)?
+
+do I count the page table page as an allocated page?
+
+when running Example output for part 2, what is hte swapoping alg used?
+
+// do these stats look right
+first run: Stats for pid 0: 4 pages_allocated 5 page_faults
+
+second run
+
+

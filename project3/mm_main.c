@@ -109,13 +109,15 @@ int main(int argc, char **argv)
 					printf("Stored value %u at virtual address %x\n", value, address);
 				}
 			} else if (strcmp(op, "stats") == 0) {
-				struct MM_Stats stats;
-				if ((rc = MM_GetStats(pid, &stats)) != 0) {
+				// struct MM_Stats *stats;
+				struct MM_Stats *stats = (struct MM_Stats *)malloc(sizeof(struct MM_Stats));
+				if ((rc = MM_GetStats(pid, stats)) != 0) {
 					printf("MM_GetStats failed: returned %d\n", rc);
 				} else {
 					printf("Stats for pid %d: %u pages_allocated %u page_faults\n",
-							pid, stats.pages_allocated, stats.page_faults);
+							pid, stats ->pages_allocated, stats->page_faults);
 				}
+				free(stats); // free up the stats
 			} else {
 				printf("Unknown operation: '%s'\n", op);
 			}
@@ -123,6 +125,8 @@ int main(int argc, char **argv)
 			printf("Invalid input\n");
 		}
 	}
+
+	
 
 	CHECK(input == NULL || fclose(input) == 0);
 	fflush(stdout);
