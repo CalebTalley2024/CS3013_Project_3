@@ -92,7 +92,7 @@ struct MM_MapResult MM_Map(int pid, uint32_t address, int writable) {
     // why start at 0 for i? -->  page table is at 0
 
     used_pages[0] = 1; // page table page is used
-    for(int PFN = MM_ALL_PAGE_TABLES_SIZE_PAGES; PFN < MM_PHYSICAL_PAGES; PFN++){
+    for(int PFN = MM_ALL_PAGE_TABLES_SIZE_PAGES; PFN < MM_PHYSICAL_PAGES; PFN++){ // start adding to pages that after after the 'page table' pages
         // printf("Considering physical frame %d\n", PFN);
         if(used_pages[PFN] == 0){
             used_pages[PFN] = 1;
