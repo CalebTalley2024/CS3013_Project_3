@@ -22,8 +22,9 @@ extern "C" {
 // Support a couple of different memory layouts; 'big' for backing actual workloads,
 // 'little' for easier testing, 'tiny' for testing the lower limits.
 
-#define TINYMEM // custom
+// #define TINYMEM // custom
 // #define BIGMEM // custom
+#define LITTLEMEM // custom
 
 // default is LITTLEMEM  // default
 #if !defined(BIGMEM) && !defined(TINYMEM) && !defined(LITTLEMEM)
@@ -54,7 +55,7 @@ typedef uint8_t pte_page_t;
 
 #elif defined(LITTLEMEM)
 typedef uint32_t pte_page_t;
-#define MM_PAGE_SIZE_BITS			12		// 4kB pages
+#define MM_PAGE_SIZE_BITS			12		// 4kB pages MM_PAGE_SIZE_BITS is just a shift for MM_PAGE_SIZE_BYTES, NOT the actual size of page
 #define MM_PHYSICAL_MEMORY_SIZE_SHIFT		(MM_PAGE_SIZE_BITS + 2)	// 4 pages physical mem. 1 stores all PTEs for all procs.
 #define MM_PROCESS_VIRTUAL_MEMORY_SIZE_SHIFT	(MM_PHYSICAL_MEMORY_SIZE_SHIFT + 1)	// virtual = 2x physical
 #define MM_BUF_CHUNK_SIZE			64		// malloc/fread size
@@ -63,7 +64,7 @@ typedef uint32_t pte_page_t;
 
 
 
-#define MM_PAGE_SIZE_BYTES			(1 << MM_PAGE_SIZE_BITS)
+#define MM_PAGE_SIZE_BYTES			(1 << MM_PAGE_SIZE_BITS) // @caleb MM_PAGE_SIZE_BITS is just a shift, NOT the actual size of page
 #define MM_PAGE_OFFSET_MASK			(MM_PAGE_SIZE_BYTES - 1)
 
 #define MM_PHYSICAL_MEMORY_SIZE_BYTES		(1 << MM_PHYSICAL_MEMORY_SIZE_SHIFT)
@@ -140,8 +141,10 @@ int MM_GetStats(int pid, struct MM_Stats *stats);
 // A single page table entry.
 // pte_page_t page; // What goes here??
  struct Page_Table_Entry {
-	pte_page_t VPN;  // 32 bits // same as Virtual Page Number VPN????
-    pte_page_t PFN;  // 32 bits
+	uint32_t VPN;  // same as Virtual Page Number VPN????
+    // pte_page_t PFN;  
+	uint32_t PFN;
+
     pte_page_t valid: 1; 
     pte_page_t swapped: 1;
     pte_page_t writable : 1;
