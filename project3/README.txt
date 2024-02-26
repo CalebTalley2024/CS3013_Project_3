@@ -22,9 +22,8 @@ DOSBox
 Page Ejection Algs
 
 
-0 page fautls when running BIGMEM
+0 page fautls when running BIGMEM - 10 pages_allocated 0 page_faults
 
-5 page_faults when running LITTLEMEM
 
 
 Questions

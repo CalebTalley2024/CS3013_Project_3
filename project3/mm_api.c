@@ -102,7 +102,8 @@ struct MM_MapResult MM_Map(int pid, uint32_t address, int writable)
         {
             used_pages[PFN] = 1;
             pte->writable = writable;
-            pte->VPN = VPN;
+            // pte->VPN = VPN;
+            // printf("PFN: %d\n",PFN);
             pte->PFN = PFN; // Page Frame Number = Physical Frame Number = PFN
             pte->valid = 1;
             pages_allocated[pid]++;
@@ -122,7 +123,8 @@ struct MM_MapResult MM_Map(int pid, uint32_t address, int writable)
         int PFN = pte->PFN;
         used_pages[PFN] = 1;
         pte->writable = writable;
-        pte->VPN = VPN;
+        // pte->VPN = VPN;
+        
         pte->PFN = PFN;
         pte->valid = 1;
         pages_allocated[pid]++;
@@ -294,7 +296,7 @@ int MM_GetStats(int pid, struct MM_Stats *stats)
 - Load: try to load page, but valid bit = 0 (not in page table)
 */
 // pte_in: pte that will replace pte_out in the page table
-int page_fault(struct Page_Table_Entry *pte_in, int pid, uint32_t VPN)
+int page_fault(struct Page_Table_Entry *pte_in, int pid, pte_page_t VPN)
 { //
 
     int PFN = get_rand_int(MM_ALL_PAGE_TABLES_SIZE_PAGES, MM_PHYSICAL_PAGES); // @chris: chagne this for the extra credit, nothing else should have to change here
@@ -326,8 +328,9 @@ int page_fault(struct Page_Table_Entry *pte_in, int pid, uint32_t VPN)
     // pte_old -> valid = 0; //
     pte_old->swapped = 1; // is in disk
 
-    printf("'pte_in -> PFN' is next\n");
+    // printf("'pte_in -> PFN' is next\n");
     // update pte_in, the pte being swapped into page table
+
     pte_in->PFN = PFN;
     pte_in->valid = 1;   //
     pte_in->swapped = 0; // is in disk

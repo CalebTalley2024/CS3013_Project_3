@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <errno.h>
+#include <math.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -138,13 +139,21 @@ int MM_GetStats(int pid, struct MM_Stats *stats);
 
 
 // @caleb custom functions
+//# of physcial page frmaes for each MM size: Tiny:8, Little:4, Big:512
+#if defined(BIGMEM)	// Given to DOSBox compilation
+#  define PFN_BITS 8
+#elif defined(TINYMEM)
+#  define PFN_BITS 3
+#else
+#  define PFN_BITS 2  // for LITTLEMEM
+#endif
+
+
 // A single page table entry.
 // pte_page_t page; // What goes here??
  struct Page_Table_Entry {
-	uint32_t VPN;  // same as Virtual Page Number VPN????
-    // pte_page_t PFN;  
-	uint32_t PFN;
-
+	// pte_page_t VPN;  // same as Virtual Page Number VPN????
+    pte_page_t PFN: PFN_BITS;  //Max pages for each tiny:8, little:4, big:512
     pte_page_t valid: 1; 
     pte_page_t swapped: 1;
     pte_page_t writable : 1;
@@ -158,7 +167,7 @@ void init_page_table_loc_register();
 int get_rand_int(int min, int max);
 
 // void page_fault(struct Page_Table_Entry * pte_in, struct Page_Table_Entry * pte_out, int PFN_out);
-int page_fault(struct Page_Table_Entry * pte_in, int pid, uint32_t VPN);
+int page_fault(struct Page_Table_Entry * pte_in, int pid, pte_page_t VPN);
 // struct Page_Table_Entry {
 //     // pte_page_t page; // What goes here??
 //     pte_page_t PFN : 20; 
