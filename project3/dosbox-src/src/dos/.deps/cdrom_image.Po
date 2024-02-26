@@ -208,8 +208,8 @@ cdrom_image.o: cdrom_image.cpp /usr/include/stdc-predef.h \
  /usr/include/x86_64-linux-gnu/bits/string_fortified.h \
  ../../include/dosbox.h ../../config.h ../../include/logging.h \
  ../../include/mem.h ../../include/../../mm_api.h \
- /usr/include/c++/11/stdlib.h ../../include/mixer.h \
- /usr/include/SDL/SDL.h /usr/include/SDL/SDL_main.h \
+ /usr/include/c++/11/stdlib.h /usr/include/c++/11/math.h \
+ ../../include/mixer.h /usr/include/SDL/SDL.h /usr/include/SDL/SDL_main.h \
  /usr/include/SDL/SDL_stdinc.h /usr/include/SDL/SDL_config.h \
  /usr/include/SDL/SDL_platform.h /usr/include/inttypes.h \
  /usr/include/iconv.h /usr/include/SDL/begin_code.h \
@@ -503,6 +503,7 @@ cdrom.h:
 ../../include/mem.h:
 ../../include/../../mm_api.h:
 /usr/include/c++/11/stdlib.h:
+/usr/include/c++/11/math.h:
 ../../include/mixer.h:
 /usr/include/SDL/SDL.h:
 /usr/include/SDL/SDL_main.h:

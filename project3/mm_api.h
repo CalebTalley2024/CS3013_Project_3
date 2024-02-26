@@ -23,9 +23,9 @@ extern "C" {
 // Support a couple of different memory layouts; 'big' for backing actual workloads,
 // 'little' for easier testing, 'tiny' for testing the lower limits.
 
-// #define TINYMEM // custom
+#define TINYMEM // custom
 // #define BIGMEM // custom
-#define LITTLEMEM // custom
+// #define LITTLEMEM // custom
 
 // default is LITTLEMEM  // default
 #if !defined(BIGMEM) && !defined(TINYMEM) && !defined(LITTLEMEM)
@@ -33,6 +33,7 @@ extern "C" {
 #  define BIGMEM
 # else
 #  define LITTLEMEM	// sensible default.
+	// #define BIGMEM // custom
 # endif
 #endif
 
@@ -140,14 +141,14 @@ int MM_GetStats(int pid, struct MM_Stats *stats);
 
 // @caleb custom functions
 //# of physcial page frmaes for each MM size: Tiny:8, Little:4, Big:512
+// log2(#physical page frames) + 1 = number of bits required to list each PFN?
 #if defined(BIGMEM)	// Given to DOSBox compilation
-#  define PFN_BITS 8
+#  define PFN_BITS 9
 #elif defined(TINYMEM)
-#  define PFN_BITS 3
+#  define PFN_BITS 4
 #else
-#  define PFN_BITS 2  // for LITTLEMEM
+#  define PFN_BITS 3  // for LITTLEMEM
 #endif
-
 
 // A single page table entry.
 // pte_page_t page; // What goes here??
@@ -160,6 +161,8 @@ int MM_GetStats(int pid, struct MM_Stats *stats);
 
     uint8_t value: 8;
 };
+
+
 int add_page_table_ptr(int pid);
 
 void init_page_table_loc_register();
@@ -168,14 +171,22 @@ int get_rand_int(int min, int max);
 
 // void page_fault(struct Page_Table_Entry * pte_in, struct Page_Table_Entry * pte_out, int PFN_out);
 int page_fault(struct Page_Table_Entry * pte_in, int pid, pte_page_t VPN);
-// struct Page_Table_Entry {
-//     // pte_page_t page; // What goes here??
-//     pte_page_t PFN : 20; 
-//     pte_page_t valid: 1;
-//     pte_page_t swapped: 1;
-//     pte_page_t writable;
+int get_PFN();
 
-// };
+// typedef struct Node{
+// 	int PFN;
+// 	struct Node *next;
+// }Node;
+
+// typedef struct LL_PF {
+// 	Node *head;
+// }LL_PF;
+
+// int add_node(LL_PF list, int PFN);
+
+// int get_LRU_Page();
+
+//Linked list that tracks which pages are used most rev
 
 #ifdef __cplusplus
 }

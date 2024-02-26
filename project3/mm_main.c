@@ -19,6 +19,9 @@ int main(int argc, char **argv)
 	printf("MM_PHYSICAL_MEMORY_SIZE_BYTES %d\n", MM_PHYSICAL_MEMORY_SIZE_BYTES);
 	printf("MM_PROCESS_VIRTUAL_MEMORY_SIZE_BYTES %d\n", MM_PROCESS_VIRTUAL_MEMORY_SIZE_BYTES);
 	printf("MM_MAX_SWAP_SIZE_BYTES %d\n", MM_MAX_SWAP_SIZE_BYTES);
+	printf("MM_NUM_PTES %d\n", MM_NUM_PTES);
+
+
 	printf("\n");
 
 	

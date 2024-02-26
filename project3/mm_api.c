@@ -15,7 +15,10 @@
 // should this just be a global variable,
 // or should this be included in each page table?
 
-int roundRobinIndex = 0; // initialized to 0
+int roundRobinIndex = 1; // variable used for round robin eviction implementation
+int swap_alg = 3;
+
+LL_PF leastRecentlyUsed;
 
 // gets random integer btw 0 and max     2 and 10
 int get_rand_int(int min, int max)
@@ -87,7 +90,8 @@ struct MM_MapResult MM_Map(int pid, uint32_t address, int writable)
     // and an offset by doing the two things below
     // uint32_t offset = address & MM_PAGE_OFFSET_MASK;
     uint32_t VPN = address >> MM_PAGE_SIZE_BITS; // Virtual Page Number = Virtual Frame Number = VPN
-    // printf("Virtual frame number = %x\n", VPN);
+    printf("address >> MM_PAGE_SIZE_BITS = %d >> %d\n", address, MM_PAGE_SIZE_BITS);
+    printf("Virtual frame number = %x\n", VPN);
     // printf("Offset = %x\n", offset);
     struct Page_Table_Entry *pte = &page_table[VPN];
     // when should we make the page table? Maybe at the beginning of the process
@@ -107,10 +111,10 @@ struct MM_MapResult MM_Map(int pid, uint32_t address, int writable)
             pte->PFN = PFN; // Page Frame Number = Physical Frame Number = PFN
             pte->valid = 1;
             pages_allocated[pid]++;
-
+            // printf("pte %p -> writable: %d\n", (void *)pte,pte-> writable);
+            // add_node(leastRecentlyUsed, PFN);
             ret.new_mapping = 1;
             ret.physical_frame = PFN;
-            // printf("pte %p -> writable: %d\n", (void *)pte,pte-> writable);
             return ret;
         }
     }
@@ -124,11 +128,11 @@ struct MM_MapResult MM_Map(int pid, uint32_t address, int writable)
         used_pages[PFN] = 1;
         pte->writable = writable;
         // pte->VPN = VPN;
-        
         pte->PFN = PFN;
         pte->valid = 1;
         pages_allocated[pid]++;
 
+        // add_node(leastRecentlyUsed, pte ->PFN); // push to the top of linked list
         ret.new_mapping = 1;
         ret.physical_frame = PFN;
         return ret;
@@ -171,22 +175,40 @@ int MM_LoadByte(int pid, uint32_t address, uint8_t *value)
     struct Page_Table_Entry *page_table = page_table_loc_register[pid];
     struct Page_Table_Entry *pte = &page_table[VPN];
 
-    if (pte->swapped == 1)
+    if (pte->valid == 0) // page was never mapped
+    {
+        if (automap_enabled == 1)
+        {
+            // map address so that it can be used to load/store
+            // keep writable
+            // also makes valid bit 1
+            MM_Map(pid, address, 1); //
+        }
+        else
+        {
+            printf("Load:Error valid bit == 0, \n");
+            return 2;
+        }
+    }
+    if (pte->swapped == 1) // page in disk
     {
 
         if (swap_enabled)
         {
             // page fault if there are no pages for us to alloate the page
             page_fault(pte, pid, VPN);
+            
         }
         else
         { // not swapped
             printf("Load failed: page not in memory");
         }
     }
+    // add_node(leastRecentlyUsed, pte -> PFN); // push to the top of linked list
     // set value to the value stored in pte
     *value = pte->value;
-    // printf("%p",(void*)pte);
+    // add_node();
+    //  printf("%p",(void*)pte);
 
     return 0; // idk how main will know about value, but lets see
 }
@@ -199,7 +221,7 @@ int MM_StoreByte(int pid, uint32_t address, uint8_t value)
     // check if register for pid does not point to anything ((nil)/null/0x0)
     // only map if automap is enabled
     if ((page_table_loc_register[pid] == NULL))
-    {   // change to 'CHECK'?
+    { // change to 'CHECK'?
         // CHECK(page_table_loc_register[pid]);
         // printf("this only points to null: %p", (void *) page_table_loc_register[pid]);
 
@@ -221,6 +243,21 @@ int MM_StoreByte(int pid, uint32_t address, uint8_t value)
     struct Page_Table_Entry *pte = &page_table[VPN];
     // update pte's value if the page is writable
     // printf("pte %p -> writable: %d\n", (void *)pte,pte-> writable);
+    if (pte->valid == 0) // page was never mapped
+    {
+        if (automap_enabled == 1)
+        {
+            // map address so that it can be used to load/store
+            // keep writable
+            // also makes valid bit 1
+            MM_Map(pid, address, 1); //
+        }
+        else
+        {
+            printf("Load:Error valid bit == 0, \n");
+            return 2;
+        }
+    }
     if (pte->swapped == 1)
     {
         if (swap_enabled)
@@ -233,17 +270,17 @@ int MM_StoreByte(int pid, uint32_t address, uint8_t value)
             printf("Load failed: page not in memory");
         }
     }
-
+    // add_node(leastRecentlyUsed, pte -> PFN); // push to the top of linked list
     if (pte->writable)
     {
         pte->value = value;
     }
-    else
-    {
-        // printf("Store Error: cannot write to 'read only' page\n");
-        // printf("store failed\n");
-        return 1;
-    }
+    // else
+    // {
+    //     // printf("Store Error: cannot write to 'read only' page\n");
+    //     // printf("store failed\n");
+    //     return 1;
+    // }
 
     return 0;
 }
@@ -299,24 +336,24 @@ int MM_GetStats(int pid, struct MM_Stats *stats)
 int page_fault(struct Page_Table_Entry *pte_in, int pid, pte_page_t VPN)
 { //
 
-    int PFN = get_rand_int(MM_ALL_PAGE_TABLES_SIZE_PAGES, MM_PHYSICAL_PAGES); // @chris: chagne this for the extra credit, nothing else should have to change here
-    int offset = PFN * MM_PTE_SIZE_BYTES;                                     // get the offset for the random index
+    int PFN = get_PFN();
+
+    int offset = PFN * MM_PTE_SIZE_BYTES; // get the offset for the random index
     struct Page_Table_Entry *pte_old = (struct Page_Table_Entry *)&phys_mem[offset];
 
     printf("make_resident, eject phys %d pid %d vp %d pp %d\n", PFN, pid, VPN, PFN);
 
     CHECK((disk = fopen("disk.txt", "r+")) != NULL); // make disk point to dist.txt file (read + write permissions)
 
-    
     // if (disk == NULL)
     // {
     //     perror("Error opening file");
     //     exit(EXIT_FAILURE);
     // }
-    
+
     // SEEK_SET: Beginning of the file.
     fseek(disk, offset, SEEK_SET);                        // position file position to top of txt file // <TODO> will have to change this for each page
-    pte_page_t buffer[MM_PTE_SIZE_BYTES];                    // buffer to help swap phys_mem[offset] and disk
+    pte_page_t buffer[MM_PTE_SIZE_BYTES];                 // buffer to help swap phys_mem[offset] and disk
     memcpy(buffer, &phys_mem[offset], MM_PTE_SIZE_BYTES); // phys_mem[offset] --> buffer
 
     CHECK(fread(&phys_mem[offset], MM_PTE_SIZE_BYTES, 1, disk) == 1); // phys_mem[offset] <-- disk
@@ -341,3 +378,94 @@ int page_fault(struct Page_Table_Entry *pte_in, int pid, pte_page_t VPN)
     fclose(disk); // close page
     return 0;
 }
+
+// gets PFN with certain swapping algorithm
+// uses global variable swap_alg
+int get_PFN()
+{
+    pte_page_t PFN;
+    pte_page_t max_idx = MM_PHYSICAL_PAGES - 1; // for case 3
+    pte_page_t swap_index_2 = 2;                // for case 2
+
+    switch (swap_alg)
+    {
+    case 1: // 1: Random
+        PFN = get_rand_int(MM_ALL_PAGE_TABLES_SIZE_PAGES, MM_PHYSICAL_PAGES);
+        break;
+    case 2: // 2: PFN always equals 2
+        PFN = swap_index_2;
+        break;
+    case 3:                                        // round robin
+        PFN = (++roundRobinIndex) % (max_idx) + 1; // corrected variable name
+        break;
+    case 4:                        //We tried getting this to work, but we ended up with core dumps and the deadline is soon
+        PFN = get_LRU_Page();
+        break;
+    default: // error
+        PFN = -1;
+        break;
+    }
+    return PFN;
+}
+
+// gets Least recently used page in page table
+int get_LRU_Page()
+{
+    int PFN = leastRecentlyUsed.head -> PFN;
+    leastRecentlyUsed.head = leastRecentlyUsed.head->next;
+    return PFN;
+}
+
+// int add_node(LL_PF list, int PFN)
+// {
+
+//     // make new node
+//     Node *newNode = malloc(sizeof(Node));
+//     if (newNode == NULL)
+//     {
+//         return -1;
+//     }
+//     newNode->PFN = PFN;
+//     // newNode.next -> NULL;
+//     if (list.head == NULL)
+//     { // if first node, make it the head
+//         list.head = newNode;
+//         return 0;
+//     }
+
+//     // if the function makes it this far, there is already an head
+
+//     Node *currentNode = malloc(sizeof(Node));
+//     currentNode = list.head;
+//     Node *previous = NULL;
+//     int i = 0;
+//     while (currentNode != NULL)
+//     {
+//         if (i == 0 && currentNode->PFN == PFN)
+//         { // case when page frame that is least recently used is being accessed again,
+//             // requiring us to move this PFN to the end of the linked list. Therefore
+//             // we remove the head, and place it at the end of the linked list.
+//             list.head = currentNode->next;
+//             currentNode = currentNode->next;
+//         }
+//         else if (currentNode->PFN == PFN)
+//         { // This covers every case where the page frame is being accessed again and
+//           // is not the head. We can simply point previous at currentNode.next so that
+//           // we skip over the node being removed and placed at the end.
+//             previous->next = currentNode->next;
+//             free(currentNode);
+//             // currentNode = currentNode.next;
+//             // previous = currentNode.next;
+//         }
+//         else
+//         { // if the page is not being accessed again (PFN is not the same as node PFN) we simply move along
+//             previous = currentNode;
+//         }
+//         i++;
+//         currentNode = currentNode->next;
+//         printf("Previous and Current Node PFN: %d, %d", previous->PFN, currentNode->PFN);
+//     }
+//     previous->next = newNode;
+//     newNode->next = NULL;
+//     return 0;
+// }

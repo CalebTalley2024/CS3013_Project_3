@@ -86,12 +86,7 @@ core_dyn_x86.o: core_dyn_x86.cpp /usr/include/stdc-predef.h \
  /usr/include/x86_64-linux-gnu/bits/errno.h /usr/include/linux/errno.h \
  /usr/include/x86_64-linux-gnu/asm/errno.h \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
- /usr/include/x86_64-linux-gnu/bits/types/error_t.h ../../include/regs.h \
- ../../include/mem.h ../../include/cpu.h ../../include/debug.h \
- ../../include/paging.h ../../include/inout.h ../../include/fpu.h \
- dyn_cache.h core_dyn_x86/risc_x64.h core_dyn_x86/decoder.h \
- ../../include/pic.h core_dyn_x86/helpers.h core_dyn_x86/string.h \
- core_dyn_x86/dyn_fpu_dh.h core_dyn_x86/dyn_fpu.h \
+ /usr/include/x86_64-linux-gnu/bits/types/error_t.h \
  /usr/include/c++/11/math.h /usr/include/c++/11/cmath \
  /usr/include/c++/11/bits/cpp_type_traits.h \
  /usr/include/c++/11/ext/type_traits.h /usr/include/math.h \
@@ -129,7 +124,12 @@ core_dyn_x86.o: core_dyn_x86.cpp /usr/include/stdc-predef.h \
  /usr/include/c++/11/tr1/modified_bessel_func.tcc \
  /usr/include/c++/11/tr1/poly_hermite.tcc \
  /usr/include/c++/11/tr1/poly_laguerre.tcc \
- /usr/include/c++/11/tr1/riemann_zeta.tcc \
+ /usr/include/c++/11/tr1/riemann_zeta.tcc ../../include/regs.h \
+ ../../include/mem.h ../../include/cpu.h ../../include/debug.h \
+ ../../include/paging.h ../../include/inout.h ../../include/fpu.h \
+ dyn_cache.h core_dyn_x86/risc_x64.h core_dyn_x86/decoder.h \
+ ../../include/pic.h core_dyn_x86/helpers.h core_dyn_x86/string.h \
+ core_dyn_x86/dyn_fpu_dh.h core_dyn_x86/dyn_fpu.h \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/float.h ../../include/cross.h \
  /usr/include/x86_64-linux-gnu/sys/stat.h \
  /usr/include/x86_64-linux-gnu/bits/stat.h \
@@ -309,21 +309,6 @@ core_dyn_x86.o: core_dyn_x86.cpp /usr/include/stdc-predef.h \
 /usr/include/asm-generic/errno.h:
 /usr/include/asm-generic/errno-base.h:
 /usr/include/x86_64-linux-gnu/bits/types/error_t.h:
-../../include/regs.h:
-../../include/mem.h:
-../../include/cpu.h:
-../../include/debug.h:
-../../include/paging.h:
-../../include/inout.h:
-../../include/fpu.h:
-dyn_cache.h:
-core_dyn_x86/risc_x64.h:
-core_dyn_x86/decoder.h:
-../../include/pic.h:
-core_dyn_x86/helpers.h:
-core_dyn_x86/string.h:
-core_dyn_x86/dyn_fpu_dh.h:
-core_dyn_x86/dyn_fpu.h:
 /usr/include/c++/11/math.h:
 /usr/include/c++/11/cmath:
 /usr/include/c++/11/bits/cpp_type_traits.h:
@@ -367,6 +352,21 @@ core_dyn_x86/dyn_fpu.h:
 /usr/include/c++/11/tr1/poly_hermite.tcc:
 /usr/include/c++/11/tr1/poly_laguerre.tcc:
 /usr/include/c++/11/tr1/riemann_zeta.tcc:
+../../include/regs.h:
+../../include/mem.h:
+../../include/cpu.h:
+../../include/debug.h:
+../../include/paging.h:
+../../include/inout.h:
+../../include/fpu.h:
+dyn_cache.h:
+core_dyn_x86/risc_x64.h:
+core_dyn_x86/decoder.h:
+../../include/pic.h:
+core_dyn_x86/helpers.h:
+core_dyn_x86/string.h:
+core_dyn_x86/dyn_fpu_dh.h:
+core_dyn_x86/dyn_fpu.h:
 /usr/lib/gcc/x86_64-linux-gnu/11/include/float.h:
 ../../include/cross.h:
 /usr/include/x86_64-linux-gnu/sys/stat.h:
