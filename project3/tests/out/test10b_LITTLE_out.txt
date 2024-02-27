@@ -1,0 +1,58 @@
+Page = 4096 bytes, Page table size = 32 bytes. All page tables = 1 pages
+MM_PTE_SIZE_BYTES 4
+MM_MAX_PROCESSES 4
+MM_ALL_PAGE_TABLES_SIZE_PAGES 1
+MM_PAGE_SIZE_BYTES 4096
+MM_PHYSICAL_MEMORY_SIZE_BYTES 16384
+MM_PROCESS_VIRTUAL_MEMORY_SIZE_BYTES 32768
+MM_MAX_SWAP_SIZE_BYTES 131072
+MM_NUM_PTES 8
+
+Instruction? address >> MM_PAGE_SIZE_BITS = 0 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 1
+Instruction? address >> MM_PAGE_SIZE_BITS = 256 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 2
+Instruction? address >> MM_PAGE_SIZE_BITS = 512 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 3
+Instruction? address >> MM_PAGE_SIZE_BITS = 768 >> 12
+Virtual frame number = 0
+Map failed
+Map: Map failed: out of memory
+Instruction? address >> MM_PAGE_SIZE_BITS = 1024 >> 12
+Virtual frame number = 0
+Map failed
+Map: Map failed: out of memory
+Instruction? Swap enabled, backed by disk
+Instruction? address >> MM_PAGE_SIZE_BITS = 768 >> 12
+Virtual frame number = 0
+make_resident, eject phys 2 pid 0 vp 0 pp 2
+Put page for PID 0 virtual frame 0 into physical frame 2
+Instruction? address >> MM_PAGE_SIZE_BITS = 1024 >> 12
+Virtual frame number = 0
+make_resident, eject phys 2 pid 0 vp 0 pp 2
+Put page for PID 0 virtual frame 0 into physical frame 2
+Instruction? Stored value 1 at virtual address 301
+Instruction? Stored value 42 at virtual address 401
+Instruction? Virtual address 401 contains value 42
+Instruction? address >> MM_PAGE_SIZE_BITS = 1281 >> 12
+Virtual frame number = 0
+make_resident, eject phys 2 pid 0 vp 0 pp 2
+Put page for PID 0 virtual frame 0 into physical frame 2
+Instruction? address >> MM_PAGE_SIZE_BITS = 1540 >> 12
+Virtual frame number = 0
+make_resident, eject phys 2 pid 0 vp 0 pp 2
+Put page for PID 0 virtual frame 0 into physical frame 2
+Instruction? address >> MM_PAGE_SIZE_BITS = 1792 >> 12
+Virtual frame number = 0
+make_resident, eject phys 2 pid 0 vp 0 pp 2
+Put page for PID 0 virtual frame 0 into physical frame 2
+Instruction? address >> MM_PAGE_SIZE_BITS = 1282 >> 12
+Virtual frame number = 0
+make_resident, eject phys 2 pid 0 vp 0 pp 2
+Put page for PID 0 virtual frame 0 into physical frame 2
+Instruction? Stored value 52 at virtual address 502
+Instruction? Stats for pid 0: 9 pages_allocated 6 page_faults
+Instruction? Elapsed time: 0.12 milliseconds

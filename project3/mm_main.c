@@ -2,11 +2,16 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <time.h>
 #include "mm_api.h"
+
 
 
 int main(int argc, char **argv)
 {
+    // Get the start time
+	clock_t startTime = clock();
+
 
 	init_page_table_loc_register();
 
@@ -129,7 +134,9 @@ int main(int argc, char **argv)
 		}
 	}
 
-	
+	clock_t endTime = clock();
+	double elapsedTime = (double)(endTime - startTime) * 1000.0 / CLOCKS_PER_SEC;
+	printf("Elapsed time: %.2f milliseconds\n", elapsedTime);
 
 	CHECK(input == NULL || fclose(input) == 0);
 	fflush(stdout);

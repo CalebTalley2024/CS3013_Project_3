@@ -1,0 +1,9 @@
+0,map,12,1
+0,store,12,3
+0,load,12,0
+0,map,25,1
+0,map,4,1
+0,map,7,1
+swap_disk
+0,map,33,1
+0,load,12,0

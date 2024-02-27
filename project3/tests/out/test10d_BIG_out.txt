@@ -1,0 +1,50 @@
+Page = 4096 bytes, Page table size = 65536 bytes. All page tables = 64 pages
+MM_PTE_SIZE_BYTES 4
+MM_MAX_PROCESSES 4
+MM_ALL_PAGE_TABLES_SIZE_PAGES 64
+MM_PAGE_SIZE_BYTES 4096
+MM_PHYSICAL_MEMORY_SIZE_BYTES 2097152
+MM_PROCESS_VIRTUAL_MEMORY_SIZE_BYTES 67108864
+MM_MAX_SWAP_SIZE_BYTES 268435456
+MM_NUM_PTES 16384
+
+Instruction? address >> MM_PAGE_SIZE_BITS = 0 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 64
+Instruction? address >> MM_PAGE_SIZE_BITS = 256 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 65
+Instruction? address >> MM_PAGE_SIZE_BITS = 512 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 66
+Instruction? address >> MM_PAGE_SIZE_BITS = 768 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 67
+Instruction? address >> MM_PAGE_SIZE_BITS = 1024 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 68
+Instruction? Swap enabled, backed by disk
+Instruction? address >> MM_PAGE_SIZE_BITS = 768 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 69
+Instruction? address >> MM_PAGE_SIZE_BITS = 1024 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 70
+Instruction? Stored value 1 at virtual address 301
+Instruction? Stored value 42 at virtual address 401
+Instruction? Virtual address 401 contains value 42
+Instruction? address >> MM_PAGE_SIZE_BITS = 1281 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 71
+Instruction? address >> MM_PAGE_SIZE_BITS = 1540 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 72
+Instruction? address >> MM_PAGE_SIZE_BITS = 1792 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 73
+Instruction? address >> MM_PAGE_SIZE_BITS = 1282 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 74
+Instruction? Stored value 52 at virtual address 502
+Instruction? Stats for pid 0: 11 pages_allocated 0 page_faults
+Instruction? Elapsed time: 0.05 milliseconds

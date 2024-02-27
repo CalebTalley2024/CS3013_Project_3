@@ -1,0 +1,31 @@
+Page = 16 bytes, Page table size = 16 bytes. All page tables = 4 pages
+MM_PTE_SIZE_BYTES 1
+MM_MAX_PROCESSES 4
+MM_ALL_PAGE_TABLES_SIZE_PAGES 4
+MM_PAGE_SIZE_BYTES 16
+MM_PHYSICAL_MEMORY_SIZE_BYTES 128
+MM_PROCESS_VIRTUAL_MEMORY_SIZE_BYTES 256
+MM_MAX_SWAP_SIZE_BYTES 1024
+MM_NUM_PTES 16
+
+Instruction? address >> MM_PAGE_SIZE_BITS = 18 >> 4
+Virtual frame number = 1
+Put page for PID 0 virtual frame 1 into physical frame 4
+Instruction? Stored value 3 at virtual address 12
+Instruction? Virtual address 12 contains value 3
+Instruction? address >> MM_PAGE_SIZE_BITS = 37 >> 4
+Virtual frame number = 2
+Put page for PID 0 virtual frame 2 into physical frame 5
+Instruction? address >> MM_PAGE_SIZE_BITS = 4 >> 4
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 6
+Instruction? address >> MM_PAGE_SIZE_BITS = 7 >> 4
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 7
+Instruction? Swap enabled, backed by disk
+Instruction? address >> MM_PAGE_SIZE_BITS = 51 >> 4
+Virtual frame number = 3
+make_resident, eject phys 3 pid 0 vp 3 pp 3
+Put page for PID 0 virtual frame 3 into physical frame 3
+Instruction? Virtual address 12 contains value 127
+Instruction? 

@@ -1,0 +1,15 @@
+Page = 4096 bytes, Page table size = 32 bytes. All page tables = 1 pages
+MM_PTE_SIZE_BYTES 4
+MM_MAX_PROCESSES 4
+MM_ALL_PAGE_TABLES_SIZE_PAGES 1
+MM_PAGE_SIZE_BYTES 4096
+MM_PHYSICAL_MEMORY_SIZE_BYTES 16384
+MM_PROCESS_VIRTUAL_MEMORY_SIZE_BYTES 32768
+MM_MAX_SWAP_SIZE_BYTES 131072
+MM_NUM_PTES 8
+
+Instruction? address >> MM_PAGE_SIZE_BITS = 16 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 1
+Instruction? store failed
+Instruction? 

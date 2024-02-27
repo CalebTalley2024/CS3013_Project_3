@@ -1,0 +1,30 @@
+Page = 4096 bytes, Page table size = 65536 bytes. All page tables = 64 pages
+MM_PTE_SIZE_BYTES 4
+MM_MAX_PROCESSES 4
+MM_ALL_PAGE_TABLES_SIZE_PAGES 64
+MM_PAGE_SIZE_BYTES 4096
+MM_PHYSICAL_MEMORY_SIZE_BYTES 2097152
+MM_PROCESS_VIRTUAL_MEMORY_SIZE_BYTES 67108864
+MM_MAX_SWAP_SIZE_BYTES 268435456
+MM_NUM_PTES 16384
+
+Instruction? address >> MM_PAGE_SIZE_BITS = 1 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 64
+Instruction? address >> MM_PAGE_SIZE_BITS = 2 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 65
+Instruction? address >> MM_PAGE_SIZE_BITS = 3 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 66
+Instruction? address >> MM_PAGE_SIZE_BITS = 4 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 67
+Instruction? address >> MM_PAGE_SIZE_BITS = 5 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 68
+Instruction? Swap enabled, backed by disk
+Instruction? address >> MM_PAGE_SIZE_BITS = 5 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 69
+Instruction? 

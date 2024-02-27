@@ -23,9 +23,9 @@ extern "C" {
 // Support a couple of different memory layouts; 'big' for backing actual workloads,
 // 'little' for easier testing, 'tiny' for testing the lower limits.
 
-#define TINYMEM // custom
-// #define BIGMEM // custom
-// #define LITTLEMEM // custom
+//#define TINYMEM // custom
+#define BIGMEM // custom
+//#define LITTLEMEM // custom
 
 // default is LITTLEMEM  // default
 #if !defined(BIGMEM) && !defined(TINYMEM) && !defined(LITTLEMEM)

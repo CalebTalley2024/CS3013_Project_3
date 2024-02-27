@@ -1,0 +1,76 @@
+Page = 4096 bytes, Page table size = 32 bytes. All page tables = 1 pages
+MM_PTE_SIZE_BYTES 4
+MM_MAX_PROCESSES 4
+MM_ALL_PAGE_TABLES_SIZE_PAGES 1
+MM_PAGE_SIZE_BYTES 4096
+MM_PHYSICAL_MEMORY_SIZE_BYTES 16384
+MM_PROCESS_VIRTUAL_MEMORY_SIZE_BYTES 32768
+MM_MAX_SWAP_SIZE_BYTES 131072
+MM_NUM_PTES 8
+
+Instruction? address >> MM_PAGE_SIZE_BITS = 24 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 1
+Instruction? Stored value 5 at virtual address 18
+Instruction? Virtual address 18 contains value 5
+Instruction? address >> MM_PAGE_SIZE_BITS = 16 >> 12
+Virtual frame number = 0
+Put page for PID 0 virtual frame 0 into physical frame 2
+Instruction? address >> MM_PAGE_SIZE_BITS = 21 >> 12
+Virtual frame number = 0
+Put page for PID 1 virtual frame 0 into physical frame 3
+Instruction? address >> MM_PAGE_SIZE_BITS = 112 >> 12
+Virtual frame number = 0
+Map failed
+Map: Map failed: out of memory
+Instruction? Swap enabled, backed by disk
+Instruction? address >> MM_PAGE_SIZE_BITS = 82 >> 12
+Virtual frame number = 0
+make_resident, eject phys 3 pid 2 vp 0 pp 3
+Put page for PID 2 virtual frame 0 into physical frame 3
+Instruction? address >> MM_PAGE_SIZE_BITS = 64 >> 12
+Virtual frame number = 0
+make_resident, eject phys 1 pid 2 vp 0 pp 1
+Put page for PID 2 virtual frame 0 into physical frame 1
+Instruction? address >> MM_PAGE_SIZE_BITS = 51 >> 12
+Virtual frame number = 0
+make_resident, eject phys 2 pid 3 vp 0 pp 2
+Put page for PID 3 virtual frame 0 into physical frame 2
+Instruction? address >> MM_PAGE_SIZE_BITS = 39 >> 12
+Virtual frame number = 0
+make_resident, eject phys 3 pid 3 vp 0 pp 3
+Put page for PID 3 virtual frame 0 into physical frame 3
+Instruction? address >> MM_PAGE_SIZE_BITS = 101 >> 12
+Virtual frame number = 0
+make_resident, eject phys 1 pid 1 vp 0 pp 1
+Put page for PID 1 virtual frame 0 into physical frame 1
+Instruction? address >> MM_PAGE_SIZE_BITS = 66 >> 12
+Virtual frame number = 0
+make_resident, eject phys 2 pid 1 vp 0 pp 2
+Put page for PID 1 virtual frame 0 into physical frame 2
+Instruction? address >> MM_PAGE_SIZE_BITS = 36 >> 12
+Virtual frame number = 0
+make_resident, eject phys 3 pid 1 vp 0 pp 3
+Put page for PID 1 virtual frame 0 into physical frame 3
+Instruction? address >> MM_PAGE_SIZE_BITS = 103 >> 12
+Virtual frame number = 0
+make_resident, eject phys 1 pid 1 vp 0 pp 1
+Put page for PID 1 virtual frame 0 into physical frame 1
+Instruction? address >> MM_PAGE_SIZE_BITS = 105 >> 12
+Virtual frame number = 0
+make_resident, eject phys 2 pid 2 vp 0 pp 2
+Put page for PID 2 virtual frame 0 into physical frame 2
+Instruction? address >> MM_PAGE_SIZE_BITS = 4 >> 12
+Virtual frame number = 0
+make_resident, eject phys 3 pid 2 vp 0 pp 3
+Put page for PID 2 virtual frame 0 into physical frame 3
+Instruction? address >> MM_PAGE_SIZE_BITS = 2 >> 12
+Virtual frame number = 0
+make_resident, eject phys 1 pid 0 vp 0 pp 1
+Put page for PID 0 virtual frame 0 into physical frame 1
+Instruction? address >> MM_PAGE_SIZE_BITS = 24 >> 12
+Virtual frame number = 0
+make_resident, eject phys 2 pid 0 vp 0 pp 2
+Put page for PID 0 virtual frame 0 into physical frame 2
+Instruction? Virtual address 18 contains value 5
+Instruction? 

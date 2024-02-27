@@ -1,0 +1,16 @@
+Page = 16 bytes, Page table size = 16 bytes. All page tables = 4 pages
+MM_PTE_SIZE_BYTES 1
+MM_MAX_PROCESSES 4
+MM_ALL_PAGE_TABLES_SIZE_PAGES 4
+MM_PAGE_SIZE_BYTES 16
+MM_PHYSICAL_MEMORY_SIZE_BYTES 128
+MM_PROCESS_VIRTUAL_MEMORY_SIZE_BYTES 256
+MM_MAX_SWAP_SIZE_BYTES 1024
+MM_NUM_PTES 16
+
+Instruction? Automap enabled
+Instruction? address >> MM_PAGE_SIZE_BITS = 19 >> 4
+Virtual frame number = 1
+Stored value 5 at virtual address 13
+Instruction? Virtual address 13 contains value 5
+Instruction? 

@@ -16,9 +16,9 @@
 // or should this be included in each page table?
 
 int roundRobinIndex = 1; // variable used for round robin eviction implementation
-int swap_alg = 3;
+int swap_alg = 5;
 
-LL_PF leastRecentlyUsed;
+//LL_PF leastRecentlyUsed;
 
 // gets random integer btw 0 and max     2 and 10
 int get_rand_int(int min, int max)
@@ -275,12 +275,12 @@ int MM_StoreByte(int pid, uint32_t address, uint8_t value)
     {
         pte->value = value;
     }
-    // else
-    // {
-    //     // printf("Store Error: cannot write to 'read only' page\n");
-    //     // printf("store failed\n");
-    //     return 1;
-    // }
+    else
+    {
+        // printf("Store Error: cannot write to 'read only' page\n");
+        // printf("store failed\n");
+        return 1;
+    }
 
     return 0;
 }
@@ -398,8 +398,15 @@ int get_PFN()
     case 3:                                        // round robin
         PFN = (++roundRobinIndex) % (max_idx) + 1; // corrected variable name
         break;
-    case 4:                        //We tried getting this to work, but we ended up with core dumps and the deadline is soon
-        PFN = get_LRU_Page();
+    // case 4:                        //We tried getting this to work, but we ended up with core dumps and the deadline is soon
+    //     PFN = get_LRU_Page();
+    //     break;
+    case 4: // always 1 of 2
+        PFN = (PFN +1)%2 + 2;  // PFN between 2 and 3
+        break;
+
+    case 5: // always 1 of 3
+        PFN = (PFN +1)%3 + 2;
         break;
     default: // error
         PFN = -1;
@@ -409,12 +416,12 @@ int get_PFN()
 }
 
 // gets Least recently used page in page table
-int get_LRU_Page()
-{
-    int PFN = leastRecentlyUsed.head -> PFN;
-    leastRecentlyUsed.head = leastRecentlyUsed.head->next;
-    return PFN;
-}
+// int get_LRU_Page()
+// {
+//     int PFN = leastRecentlyUsed.head -> PFN;
+//     leastRecentlyUsed.head = leastRecentlyUsed.head->next;
+//     return PFN;
+// }
 
 // int add_node(LL_PF list, int PFN)
 // {
