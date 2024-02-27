@@ -286,7 +286,6 @@ int MM_StoreByte(int pid, uint32_t address, uint8_t value)
 }
 
 uint32_t MM_PageSize() { return MM_PAGE_SIZE_BYTES; }
-
 // enables automapping
 void MM_AutoMap()
 {
